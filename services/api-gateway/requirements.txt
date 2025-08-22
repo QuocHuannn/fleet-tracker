@@ -1,0 +1,31 @@
+# Fleet Tracker API Gateway Dependencies
+
+# Core Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+gunicorn==21.2.0
+
+# HTTP Client for service communication
+httpx==0.25.2
+
+# Authentication
+python-jose[cryptography]==3.3.0
+PyJWT==2.8.0
+
+# Redis for rate limiting
+redis==5.0.1
+hiredis==2.2.3
+
+# Configuration
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-dotenv==1.0.0
+
+# Utilities
+python-multipart==0.0.6
+
+# Development
+pytest==7.4.3
+pytest-asyncio==0.21.1
+black==23.11.0
+flake8==6.1.0

@@ -2,9 +2,9 @@
 
 ### Real-time GPS Vehicle Tracking System
 
-![Typing SVG](https://readme-typing-svg.herokuapp.com?font=Fira+Code&pause=1000&color=3FB3D3&width=435&lines=Real-time+GPS+Vehicle+Tracking;Microservices+Architecture;Cloud+Native+Solution)
+![Typing SVG](https://readme-typing-svg.herokuapp.com?font=Fira+Code&pause=1000&color=3FB3D3&width=435&lines=Real-time+GPS+Vehicle+Tracking;True+Microservices+Architecture;Distributed+Systems+Learning)
 
-Fleet Tracker là hệ thống quản lý đội xe toàn diện, cung cấp theo dõi GPS thời gian thực, lịch sử di chuyển, geofencing và phân tích fleet. Được thiết kế cho quản trị viên để giám sát và quản lý đội xe hiệu quả.
+Fleet Tracker là hệ thống quản lý đội xe enterprise-grade được xây dựng theo **True Microservices Architecture**. Hệ thống cung cấp theo dõi GPS thời gian thực, lịch sử di chuyển, geofencing và phân tích fleet với khả năng mở rộng và độ tin cậy cao.
 
 ## ✨ Core Features
 
@@ -15,15 +15,44 @@ Fleet Tracker là hệ thống quản lý đội xe toàn diện, cung cấp the
 - 🚨 **Smart Alerts** - Cảnh báo vi phạm tốc độ, geofence violations
 - 📈 **Analytics & Reports** - Báo cáo hiệu suất và thống kê fleet
 
-## 🏗️ System Architecture
+## 🏗️ Microservices Architecture
 
 ```
-IoT/GPS Device → MQTT Broker → FastAPI Backend → PostgreSQL + Redis
-                                      ↓
-                               WebSocket + REST API  
-                                      ↓
-                                React Frontend
+                            ┌─────────────────┐
+                            │   API Gateway   │ ← Frontend (React)
+                            │    (Port 8000)  │
+                            └─────────┬───────┘
+                                      │
+                    ┌─────────────────┼─────────────────┐
+                    │                 │                 │
+            ┌───────▼──────┐ ┌───────▼──────┐ ┌───────▼──────┐
+            │ Auth Service │ │Vehicle Service│ │Location Service│
+            │ (Port 8001)  │ │ (Port 8002)  │ │ (Port 8003)  │
+            └──────────────┘ └──────────────┘ └──────────────┘
+                    │                 │                 │
+            ┌───────▼──────┐          │         ┌───────▼──────┐
+            │   User DB    │          │         │  Location DB │
+            │ (PostgreSQL) │          │         │ (PostgreSQL  │
+            └──────────────┘          │         │  + PostGIS)  │
+                                      │         └──────────────┘
+                              ┌───────▼──────┐
+                              │  Vehicle DB  │         ┌─────────────────┐
+                              │ (PostgreSQL) │         │Notification Svc │
+                              └──────────────┘         │ (Port 8004)     │
+                                                       └─────────────────┘
+                                      │
+                            ┌─────────▼──────────┐
+                            │    Shared Layer    │
+                            │ Redis + MQTT Broker │
+GPS Devices ────────────────┴────────────────────┘
 ```
+
+### 🎯 Microservices Overview
+- **API Gateway (8000)**: Request routing, authentication, rate limiting
+- **Auth Service (8001)**: User authentication & authorization với Firebase
+- **Vehicle Service (8002)**: Vehicle management & device registration  
+- **Location Service (8003)**: GPS data processing & spatial operations
+- **Notification Service (8004)**: Real-time alerts & WebSocket connections
 
 ## 🛠️ Tech Stack
 
@@ -75,58 +104,82 @@ cp .env.example .env
 # 3. Start all services
 docker-compose up -d
 
-# 4. Run database migrations  
-docker-compose exec backend alembic upgrade head
+# 4. Run database migrations cho tất cả services
+docker-compose exec auth-service alembic upgrade head
+docker-compose exec vehicle-service alembic upgrade head  
+docker-compose exec location-service alembic upgrade head
+docker-compose exec notification-service alembic upgrade head
 
-# 5. Access application
+# 5. Access microservices
+# API Gateway: http://localhost:8000
+# Auth Service: http://localhost:8001/docs
+# Vehicle Service: http://localhost:8002/docs
+# Location Service: http://localhost:8003/docs
+# Notification Service: http://localhost:8004/docs
 # Frontend: http://localhost:3000
-# Backend API: http://localhost:8000
-# API Docs: http://localhost:8000/docs
 ```
 
-## 🐳 Container Services
+## 🐳 Microservices Containers
 
-- **backend** (port 8000) - FastAPI application với MQTT subscriber
+- **api-gateway** (port 8000) - Request routing & authentication
+- **auth-service** (port 8001) - User management & JWT validation
+- **vehicle-service** (port 8002) - Vehicle CRUD & device management
+- **location-service** (port 8003) - GPS processing & spatial queries
+- **notification-service** (port 8004) - Alerts & real-time notifications
 - **frontend** (port 3000) - React SPA với map integration
-- **database** (port 5432) - PostgreSQL với PostGIS spatial extension
-- **redis** (port 6379) - Cache và session store
-- **mosquitto** (ports 1883/8883) - MQTT broker cho IoT messaging
+- **Multiple Databases** - PostgreSQL per service + Redis shared cache
+- **mosquitto** (ports 1883/8883) - MQTT broker cho GPS devices
 
 ## 📚 API Overview
 
-**Authentication**
-- `POST /auth/login` - Firebase token authentication
-- `POST /auth/refresh` - Refresh access token
+**API Gateway (Port 8000)**
+- `GET /health` - System health check
+- `POST /auth/*` - Proxy to Auth Service
+- `GET /vehicles/*` - Proxy to Vehicle Service
+- `GET /locations/*` - Proxy to Location Service
+- `WebSocket /ws` - Real-time notifications
 
-**Vehicles**  
-- `GET /vehicles` - List vehicles với filtering và pagination
-- `GET /vehicles/{id}/location` - Current GPS position
-- `GET /vehicles/{id}/history` - Location history với time range
+**Auth Service (Port 8001)**
+- `POST /login` - Firebase authentication
+- `POST /refresh` - JWT token refresh
+- `GET /users/profile` - User profile management
 
-**Real-time**
-- `WebSocket /ws` - Subscribe to live vehicle updates
-- `GET /alerts` - System alerts và notifications
+**Vehicle Service (Port 8002)**
+- `GET /vehicles` - Vehicle management
+- `POST /vehicles` - Register new vehicle
+- `PUT /vehicles/{id}` - Update vehicle info
 
-Xem chi tiết: http://localhost:8000/docs (Swagger UI)
+**Location Service (Port 8003)**
+- `GET /locations/current` - Real-time positions
+- `GET /locations/history` - Historical GPS data
+- `POST /geofences` - Geofence management
+
+**Notification Service (Port 8004)**
+- `GET /alerts` - Alert management
+- `WebSocket /notifications` - Real-time updates
+- `POST /notifications/rules` - Alert rules
+
+Xem chi tiết: http://localhost:8000/docs (API Gateway)
 
 ## 📊 Key Features Implementation
 
-**Real-time Tracking**
-- MQTT message processing cho GPS data
-- WebSocket broadcasting cho live updates
-- PostGIS spatial indexing cho performance queries
+**Microservices Benefits**
+- **Independent Scaling**: Mỗi service scale riêng biệt based on load
+- **Fault Isolation**: Service failure không affect toàn bộ system
+- **Technology Diversity**: Different tech stacks per service optimization
+- **Parallel Development**: Teams có thể work independently trên services
 
-**Security & Performance**
-- JWT-based authentication với Firebase integration
-- Role-based access control (Admin/Manager/Viewer)
-- Redis caching cho frequent queries
-- Rate limiting và input validation
+**Distributed Architecture**
+- **Service Discovery**: Automatic service registration & discovery
+- **Load Balancing**: Multiple instances per service
+- **Circuit Breaker**: Fault tolerance patterns implementation
+- **Event-Driven**: Async communication với message queues
 
-**Scalability**
-- Docker container architecture
-- Database connection pooling
-- Horizontal scaling ready
-- Efficient spatial queries với PostGIS
+**Enterprise Security**
+- **JWT Authentication**: Service-to-service security
+- **API Gateway**: Central authentication & authorization point
+- **Database Isolation**: Separate databases per service
+- **mTLS Communication**: Secure inter-service communication
 
 ## 🚀 Production Deployment
 
