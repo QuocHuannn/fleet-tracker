@@ -1,0 +1,58 @@
+/* Fleet Tracker App Styles */
+
+.App {
+  text-align: center;
+}
+
+.App-header {
+  background-color: #282c34;
+  padding: 40px;
+  color: white;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+}
+
+.App-header h1 {
+  margin: 0 0 1rem 0;
+  font-size: 3rem;
+}
+
+.App-header p {
+  margin: 0.5rem 0;
+  font-size: 1.2rem;
+}
+
+.App-header code {
+  background-color: #21252b;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+}
+
+/* TODO: Add main application styles */
+/*
+.main-layout {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: #f5f5f5;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-container {
+  flex: 1;
+  position: relative;
+}
+*/

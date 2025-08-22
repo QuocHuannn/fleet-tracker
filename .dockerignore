@@ -1,0 +1,160 @@
+# Fleet Tracker - Docker Ignore Configuration
+# Files and directories to exclude from Docker build context
+
+# =============================================
+# PROJECT PLANNING & DOCUMENTATION
+# =============================================
+.cursor-plan/
+docs/
+planning/
+*.md
+README*
+LICENSE*
+CHANGELOG*
+
+# =============================================
+# GIT & VERSION CONTROL
+# =============================================
+.git/
+.gitignore
+.gitkeep
+.gitattributes
+
+# =============================================
+# ENVIRONMENT & SECRETS
+# =============================================
+.env*
+*.env
+secrets/
+.secrets/
+ssl/
+certs/
+certificates/
+*.pem
+*.key
+*.crt
+
+# =============================================
+# IDE & EDITOR FILES
+# =============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# =============================================
+# NODE.JS (Frontend)
+# =============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+coverage/
+.nyc_output
+
+# Keep package files for frontend builds
+# !package.json
+# !package-lock.json
+# !yarn.lock
+
+# =============================================
+# PYTHON (Backend)
+# =============================================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.venv/
+.env/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Keep requirements files
+# !requirements.txt
+# !requirements.prod.txt
+
+# =============================================
+# BUILD ARTIFACTS
+# =============================================
+build/
+dist/
+out/
+target/
+*.tar.gz
+*.zip
+
+# =============================================
+# LOGS & TEMPORARY FILES
+# =============================================
+logs/
+*.log
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# =============================================
+# DATABASE & DATA FILES
+# =============================================
+*.sql
+*.db
+*.sqlite3
+data/
+backups/
+volumes/
+postgres-data/
+redis-data/
+mosquitto-data/
+
+# =============================================
+# TESTING
+# =============================================
+test-results/
+test-reports/
+coverage-reports/
+.pytest_cache/
+
+# =============================================
+# DOCKER FILES (Context Specific)
+# =============================================
+# Don't copy other Docker files into containers
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# =============================================
+# DEVELOPMENT TOOLS
+# =============================================
+.cache/
+.parcel-cache/
+.sass-cache/
+
+# =============================================
+# MONITORING & PERFORMANCE
+# =============================================
+grafana-data/
+prometheus-data/
+performance-reports/
+
+# =============================================
+# MISCELLANEOUS
+# =============================================
+*.orig
+*.rej
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini

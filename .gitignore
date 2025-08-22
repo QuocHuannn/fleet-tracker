@@ -1,0 +1,345 @@
+# Fleet Tracker - GitIgnore Configuration
+
+# =============================================
+# PROJECT PLANNING & DOCUMENTATION (Private)
+# =============================================
+.cursor-plan/
+docs/internal/
+planning/
+*.planning
+*.todo
+
+# =============================================
+# SECURITY & CREDENTIALS (Critical)
+# =============================================
+
+# Environment Files
+.env
+.env.local
+.env.production
+.env.prod
+.env.staging
+.env.development
+.env.dev
+.env.test
+*.env
+
+# Firebase Configuration
+firebase-adminsdk-*.json
+serviceAccountKey.json
+firebase-config.json
+google-services.json
+GoogleService-Info.plist
+
+# SSL Certificates & Keys
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+ssl/
+certs/
+certificates/
+
+# JWT & API Keys
+jwt-secret*
+api-keys*
+*.secret
+secrets/
+.secrets/
+
+# Database Credentials
+database.conf
+db-config*
+connection-strings*
+
+# MQTT Broker Credentials
+mqtt-credentials*
+mosquitto.passwd
+broker-auth*
+
+# Cloud Provider Credentials
+.aws/
+.gcloud/
+azure-credentials*
+digitalocean-*
+
+# =============================================
+# BACKEND (Python/FastAPI)
+# =============================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+.env/
+
+# FastAPI Specific
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Alembic (Database Migrations)
+alembic.ini.local
+migrations/env.py.local
+
+# =============================================
+# FRONTEND (React/Node.js)
+# =============================================
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Build Output
+build/
+dist/
+out/
+.next/
+.nuxt/
+.vuepress/dist
+.serverless/
+
+# Runtime Data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage & Testing
+coverage/
+*.lcov
+.nyc_output
+
+# Environment & Config
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Package Manager Files
+.npm
+.yarn-integrity
+yarn.lock
+package-lock.json
+
+# =============================================
+# DATABASE & DATA
+# =============================================
+
+# PostgreSQL
+*.sql.backup
+*.dump
+*.tar
+database-backup*
+db-backup*
+pg_dump*
+
+# SQLite
+*.sqlite3
+*.sqlite
+*.db
+
+# Redis
+dump.rdb
+redis-data/
+
+# Data Files
+*.csv
+*.json.backup
+data/
+backups/
+*.log.gz
+*.log.[0-9]*
+
+# =============================================
+# DOCKER & CONTAINERS
+# =============================================
+
+# Docker
+.docker/
+docker-compose.override.yml
+docker-compose.local.yml
+docker-compose.*.local.yml
+Dockerfile.local
+
+# Container Data
+volumes/
+data/
+postgres-data/
+redis-data/
+mosquitto-data/
+
+# =============================================
+# DEVELOPMENT TOOLS
+# =============================================
+
+# IDEs & Editors
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Temporary Files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.orig
+*.rej
+
+# =============================================
+# LOGGING & MONITORING
+# =============================================
+
+# Application Logs
+logs/
+*.log
+log-*
+application.log*
+error.log*
+access.log*
+debug.log*
+
+# Monitoring Data
+grafana-data/
+prometheus-data/
+monitoring-data/
+
+# =============================================
+# TESTING & CI/CD
+# =============================================
+
+# Test Results
+test-results/
+test-reports/
+.pytest_cache/
+junit.xml
+coverage-reports/
+
+# CI/CD Artifacts
+.github/workflows/secrets.yml
+deployment-keys/
+ci-cache/
+
+# =============================================
+# MISCELLANEOUS
+# =============================================
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Large Media Files (if any)
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+
+# Cache Directories
+.cache/
+.parcel-cache/
+.sass-cache/
+
+# Lock Files (for reproducible builds - keep if needed)
+# Uncomment if you want to track lock files:
+# !package-lock.json
+# !yarn.lock
+
+# =============================================
+# PROJECT SPECIFIC
+# =============================================
+
+# MQTT Test Data
+mqtt-test-data/
+gps-simulation-data/
+
+# Map Tiles Cache
+map-cache/
+tiles-cache/
+
+# Generated Documentation
+docs/generated/
+api-docs/generated/
+
+# Performance Test Results
+performance-reports/
+load-test-results/
+
+# Demo & Sample Data
+demo-data/
+sample-gps-data/
+test-vehicles.json
+
+# =============================================
+# KEEP THESE FILES (Explicit Inclusion)
+# =============================================
+
+# Important: Use ! to ensure these are NOT ignored
+!.gitkeep
+!.env.example
+!.env.template
+!docker-compose.yml
+!docker-compose.prod.yml
+!README.md
+!LICENSE
+!requirements.txt
+!package.json
+
+# =============================================
+# END OF GITIGNORE
+# =============================================

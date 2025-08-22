@@ -1,0 +1,129 @@
+# Fleet Tracker Development Environment
+# Docker Compose configuration for local development
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database with PostGIS
+  database:
+    image: postgis/postgis:15-master
+    container_name: fleet_tracker_db
+    environment:
+      POSTGRES_DB: fleet_tracker
+      POSTGRES_USER: fleet_user
+      POSTGRES_PASSWORD: fleet_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    networks:
+      - fleet_network
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: fleet_tracker_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - fleet_network
+    restart: unless-stopped
+
+  # MQTT Broker
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: fleet_tracker_mqtt
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mqtt-broker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mqtt-broker/data:/mosquitto/data
+      - ./mqtt-broker/logs:/mosquitto/log
+      - mosquitto_data:/mosquitto/data
+    networks:
+      - fleet_network
+    restart: unless-stopped
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fleet_tracker_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://fleet_user:fleet_password@database:5432/fleet_tracker
+      - REDIS_URL=redis://redis:6379
+      - MQTT_BROKER_HOST=mosquitto
+      - MQTT_BROKER_PORT=1883
+      - ENVIRONMENT=development
+      - DEBUG=true
+    volumes:
+      - ./backend:/app
+      - backend_node_modules:/app/node_modules
+    depends_on:
+      - database
+      - redis
+      - mosquitto
+    networks:
+      - fleet_network
+    restart: unless-stopped
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  # Frontend React App
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: fleet_tracker_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_WS_URL=ws://localhost:8000/ws
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - fleet_network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy (Optional for development)
+  nginx:
+    image: nginx:alpine
+    container_name: fleet_tracker_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/dev.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - fleet_network
+    restart: unless-stopped
+    profiles: ["with-nginx"]
+
+# Networks
+networks:
+  fleet_network:
+    driver: bridge
+
+# Persistent Volumes
+volumes:
+  postgres_data:
+  redis_data:
+  mosquitto_data:
+  backend_node_modules:
+  frontend_node_modules:
