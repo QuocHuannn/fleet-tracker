@@ -151,13 +151,6 @@ MIT License - see [LICENSE](LICENSE) file.
 | <img src="https://media.giphy.com/media/MeJgB3yMwRILY5YDKR/giphy.gif" width="30"> **Email** | <img src="https://media.giphy.com/media/Q7LHmoFwVP6Yc3lU8r/giphy.gif" width="30"> **Location** | <img src="https://media.giphy.com/media/WUlplcMpOCEmTGBtBW/giphy.gif" width="30"> **Phone** |
 | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
 | [truonghuan0709@gmail.com](mailto:truonghuan0709@gmail.com) | TP. Hồ Chí Minh, Việt Nam | +84 335 597 676 |
-
-### 🚀 Professional Highlights
-
-| <img src="https://media.giphy.com/media/SWoSkN6DxTszqIKEqv/giphy.gif" width="30"> **Microservices Expert** | <img src="https://media.giphy.com/media/kHkDbKpH8PFe8OnxrM/giphy.gif" width="30"> **Cloud Native Specialist** | <img src="https://media.giphy.com/media/VgGthkhUvGgOit75Y9i/giphy.gif" width="30"> **Performance Optimizer** |
-| ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Architected scalable systems | Kubernetes & Docker mastery | High-performance applications |
-
 ---
 
 **⭐ Crafted with passion by [Trương Quốc Huân](https://github.com/QuocHuannn)** ❤️
