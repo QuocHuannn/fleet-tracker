@@ -1,0 +1,206 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    build: ./services/api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - AUTH_SERVICE_URL=http://auth-service:8001
+      - VEHICLE_SERVICE_URL=http://vehicle-service:8002
+      - LOCATION_SERVICE_URL=http://location-service:8003
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8004
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET_KEY=dev_jwt_secret_key
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ./services/api-gateway:/app
+    depends_on:
+      - auth-service
+      - vehicle-service
+      - location-service
+      - notification-service
+      - redis
+
+  # Auth Service
+  auth-service:
+    build: ./services/auth-service
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://auth_user:auth_password@auth-db:5432/auth_db
+      - REDIS_URL=redis://redis:6379/1
+      - JWT_SECRET_KEY=dev_jwt_secret_key
+      - JWT_EXPIRE_MINUTES=60
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ./services/auth-service:/app
+    depends_on:
+      - auth-db
+      - redis
+
+  # Vehicle Service
+  vehicle-service:
+    build: ./services/vehicle-service
+    ports:
+      - "8002:8002"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://vehicle_user:vehicle_password@vehicle-db:5432/vehicle_db
+      - AUTH_SERVICE_URL=http://auth-service:8001
+      - JWT_SECRET_KEY=dev_jwt_secret_key
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ./services/vehicle-service:/app
+    depends_on:
+      - vehicle-db
+
+  # Location Service
+  location-service:
+    build: ./services/location-service
+    ports:
+      - "8003:8003"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://location_user:location_password@location-db:5432/location_db
+      - MQTT_BROKER_URL=mqtt://mosquitto:1883
+      - MQTT_USERNAME=mqtt_user
+      - MQTT_PASSWORD=mqtt_password
+      - REDIS_URL=redis://redis:6379/2
+      - VEHICLE_SERVICE_URL=http://vehicle-service:8002
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ./services/location-service:/app
+    depends_on:
+      - location-db
+      - mosquitto
+      - redis
+
+  # Notification Service
+  notification-service:
+    build: ./services/notification-service
+    ports:
+      - "8004:8004"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://notification_user:notification_password@notification-db:5432/notification_db
+      - REDIS_URL=redis://redis:6379/3
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ./services/notification-service:/app
+    depends_on:
+      - notification-db
+      - redis
+
+  # Frontend
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_WS_URL=ws://localhost:8004/ws
+
+  # Databases
+  auth-db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=auth_db
+      - POSTGRES_USER=auth_user
+      - POSTGRES_PASSWORD=auth_password
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+      - ./infrastructure/databases/init/auth:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+
+  vehicle-db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=vehicle_db
+      - POSTGRES_USER=vehicle_user
+      - POSTGRES_PASSWORD=vehicle_password
+    volumes:
+      - vehicle_db_data:/var/lib/postgresql/data
+      - ./infrastructure/databases/init/vehicle:/docker-entrypoint-initdb.d
+    ports:
+      - "5433:5432"
+
+  location-db:
+    image: postgis/postgis:15-master
+    environment:
+      - POSTGRES_DB=location_db
+      - POSTGRES_USER=location_user
+      - POSTGRES_PASSWORD=location_password
+    volumes:
+      - location_db_data:/var/lib/postgresql/data
+      - ./infrastructure/databases/init/location:/docker-entrypoint-initdb.d
+    ports:
+      - "5434:5432"
+
+  notification-db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=notification_db
+      - POSTGRES_USER=notification_user
+      - POSTGRES_PASSWORD=notification_password
+    volumes:
+      - notification_db_data:/var/lib/postgresql/data
+      - ./infrastructure/databases/init/notification:/docker-entrypoint-initdb.d
+    ports:
+      - "5435:5432"
+
+  # Shared Infrastructure
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./infrastructure/mqtt-broker/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./infrastructure/mqtt-broker/passwd:/mosquitto/config/passwd
+      - ./infrastructure/mqtt-broker/acl:/mosquitto/config/acl
+      - mosquitto_data:/mosquitto/data
+
+  # Monitoring (optional)
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    profiles:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    profiles:
+      - monitoring
+
+volumes:
+  auth_db_data:
+  vehicle_db_data:
+  location_db_data:
+  notification_db_data:
+  redis_data:
+  mosquitto_data:
+  prometheus_data:
+  grafana_data:
