@@ -1,1 +1,1 @@
-# API Gateway Routes Package
+# API Gateway Routes

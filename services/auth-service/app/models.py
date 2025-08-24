@@ -1,7 +1,7 @@
 # Auth Service Database Models
 
 from sqlalchemy import Column, String, DateTime, Boolean, Integer, Text, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB, INET
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
@@ -15,8 +15,10 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     firebase_uid = Column(String(255), unique=True, nullable=False, index=True)
     email = Column(String(255), unique=True, nullable=False, index=True)
+    display_name = Column(String(255))
     role = Column(String(50), nullable=False, default="viewer")
     is_active = Column(Boolean, default=True, nullable=False)
+    metadata = Column(JSONB, default={})
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     last_login = Column(DateTime(timezone=True))
@@ -54,8 +56,8 @@ class UserSession(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     token_hash = Column(String(255), nullable=False, index=True)
-    device_info = Column(Text)  # JSON string with device information
-    ip_address = Column(String(45))  # Support IPv6
+    device_info = Column(JSONB, default={})
+    ip_address = Column(INET)
     user_agent = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     last_activity = Column(DateTime(timezone=True), server_default=func.now())

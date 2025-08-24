@@ -6,21 +6,33 @@ import time
 import uuid
 from typing import Dict, Any
 
-from app.database import init_db, close_db, get_db
-from app.config import settings
-from app.routes import location_router, geofence_router
-from app.mqtt import mqtt_client
-from app.models import InvalidCoordinatesError, GeofenceNotFoundError
+from .database import init_db, close_db, get_db
+from .config import settings
+from .routes import location_router, geofence_router, health
+from .mqtt_handler import mqtt_handler
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
+    logger.info("🌍 Location Service starting up...")
     await init_db()
-    await mqtt_client.connect()
+    
+    # Connect to MQTT broker
+    try:
+        await mqtt_handler.connect()
+        logger.info("✅ MQTT handler connected")
+    except Exception as e:
+        logger.error(f"❌ MQTT connection failed: {str(e)}")
+        # Continue without MQTT for development
+    
+    logger.info("✅ Location Service ready")
     yield
+    
     # Shutdown
-    await mqtt_client.disconnect()
+    logger.info("🔄 Location Service shutting down...")
+    await mqtt_handler.disconnect()
     await close_db()
+    logger.info("✅ Location Service shutdown completed")
 
 # Khởi tạo FastAPI app
 app = FastAPI(
@@ -56,56 +68,25 @@ async def add_request_id(request: Request, call_next):
     
     return response
 
-# Error handlers
-@app.exception_handler(InvalidCoordinatesError)
-async def invalid_coordinates_handler(request: Request, exc: InvalidCoordinatesError):
-    return JSONResponse(
-        status_code=400,
-        content={
-            "error": "invalid_coordinates",
-            "message": "Invalid GPS coordinates provided",
-            "details": exc.details,
-            "request_id": request.state.request_id
-        }
-    )
-
-@app.exception_handler(GeofenceNotFoundError)
-async def geofence_not_found_handler(request: Request, exc: GeofenceNotFoundError):
-    return JSONResponse(
-        status_code=404,
-        content={
-            "error": "geofence_not_found",
-            "message": f"Geofence with ID {exc.geofence_id} not found",
-            "request_id": request.state.request_id
-        }
-    )
-
-# Health check endpoint
-@app.get("/health", tags=["Health"])
-async def health_check():
-    health_status = {
-        "status": "healthy",
-        "service": "location-service",
-        "version": app.version,
-        "mqtt": "connected" if mqtt_client.is_connected else "disconnected"
-    }
-    
-    # Nếu MQTT không kết nối được, trả về trạng thái degraded
-    if not mqtt_client.is_connected:
-        health_status["status"] = "degraded"
-        return JSONResponse(content=health_status, status_code=503)
-    
-    return health_status
+# Error handlers will be added later
 
 # Đăng ký routers
-app.include_router(location_router.router, prefix="/api/v1", tags=["Locations"])
-app.include_router(geofence_router.router, prefix="/api/v1", tags=["Geofences"])
+app.include_router(health.router, prefix="/health", tags=["Health"])
+app.include_router(location_router.router, prefix="/locations", tags=["Locations"])
+app.include_router(geofence_router.router, prefix="/geofences", tags=["Geofences"])
 
 # Root endpoint
 @app.get("/")
 async def root():
     return {
-        "service": "Location Service",
-        "version": app.version,
-        "docs_url": "/docs"
+        "service": "Fleet Tracker Location Service",
+        "version": "1.0.0",
+        "status": "healthy",
+        "mqtt_connected": mqtt_handler.is_connected(),
+        "endpoints": {
+            "health": "/health",
+            "locations": "/locations/*",
+            "geofences": "/geofences/*",
+            "docs": "/docs"
+        }
     }

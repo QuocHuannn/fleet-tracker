@@ -28,8 +28,8 @@ class Settings(BaseSettings):
     # Auth service URL
     AUTH_SERVICE_URL: str = "http://auth-service:8001"
     
-    # JWT settings
-    JWT_SECRET_KEY: str
+    # JWT settings - MUST match auth service
+    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY") or "INSECURE_DEV_KEY_CHANGE_IN_PRODUCTION"
     JWT_ALGORITHM: str = "HS256"
     
     # Logging

@@ -26,8 +26,8 @@ class Settings(BaseSettings):
     RATE_LIMIT_REQUESTS_PER_MINUTE: int = 1000
     RATE_LIMIT_BURST_SIZE: int = 100
     
-    # JWT Configuration (for token validation)
-    JWT_SECRET_KEY: str = "api-gateway-secret-key"
+    # JWT Configuration (for token validation) - MUST match auth service
+    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY") or "INSECURE_DEV_KEY_CHANGE_IN_PRODUCTION"
     JWT_ALGORITHM: str = "HS256"
     
     # Redis for rate limiting và caching

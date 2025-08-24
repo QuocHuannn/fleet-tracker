@@ -1,36 +1,31 @@
-# API Gateway - Main Entry Point
-# Routes requests to appropriate microservices
+# API Gateway - Main Application
 
-from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import httpx
-import asyncio
-from typing import Dict, Any
 import logging
+import time
 
 from .config import settings
-from .middleware import RateLimitMiddleware, LoggingMiddleware
-from .auth import verify_token
 from .routes import health, proxy
+from .middleware import add_correlation_id
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Fleet Tracker API Gateway",
-    description="Central API Gateway for Fleet Tracker microservices",
+    description="API Gateway for Fleet Tracker microservices",
     version="1.0.0",
     docs_url="/docs" if settings.ENVIRONMENT == "development" else None,
     contact={
         "name": "Trương Quốc Huân",
-        "email": "truonghuan0709@gmail.com",
-        "url": "https://github.com/QuocHuannn"
+        "email": "truonghuan0709@gmail.com"
     }
 )
 
-# CORS Middleware
+# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -39,13 +34,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Custom Middlewares
-app.add_middleware(RateLimitMiddleware)
-app.add_middleware(LoggingMiddleware)
+# Request tracking middleware
+@app.middleware("http")
+async def track_requests(request: Request, call_next):
+    start_time = time.time()
+    
+    # Add correlation ID
+    correlation_id = add_correlation_id(request)
+    
+    response = await call_next(request)
+    
+    # Add response headers
+    response.headers["X-Correlation-ID"] = correlation_id
+    response.headers["X-Response-Time"] = str(time.time() - start_time)
+    response.headers["X-Gateway"] = "fleet-tracker-gateway"
+    
+    # Log request
+    logger.info(
+        f"{request.method} {request.url.path} - {response.status_code} - "
+        f"{time.time() - start_time:.3f}s - {correlation_id}"
+    )
+    
+    return response
 
 # Include routers
 app.include_router(health.router, prefix="/health", tags=["Health"])
-app.include_router(proxy.router, prefix="/api/v1", tags=["Proxy"])
+app.include_router(proxy.router, prefix="", tags=["Proxy"])
 
 @app.get("/")
 async def root():
@@ -54,36 +68,36 @@ async def root():
         "service": "Fleet Tracker API Gateway",
         "version": "1.0.0",
         "status": "healthy",
+        "endpoints": {
+            "health": "/health",
+            "auth": "/auth/*",
+            "vehicles": "/vehicles/*",
+            "locations": "/locations/*",
+            "geofences": "/geofences/*",
+            "alerts": "/alerts/*",
+            "services_health": "/health/services"
+        },
         "services": {
-            "auth_service": settings.AUTH_SERVICE_URL,
-            "vehicle_service": settings.VEHICLE_SERVICE_URL,
-            "location_service": settings.LOCATION_SERVICE_URL,
-            "notification_service": settings.NOTIFICATION_SERVICE_URL
+            "auth": settings.AUTH_SERVICE_URL,
+            "vehicle": settings.VEHICLE_SERVICE_URL,
+            "location": settings.LOCATION_SERVICE_URL,
+            "notification": settings.NOTIFICATION_SERVICE_URL
         }
     }
 
-@app.exception_handler(httpx.RequestError)
-async def request_error_handler(request: Request, exc: httpx.RequestError):
-    """Handle service communication errors"""
-    logger.error(f"Service request failed: {exc}")
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Global exception handler"""
+    correlation_id = getattr(request.state, 'correlation_id', 'unknown')
+    
+    logger.error(f"Unhandled exception: {str(exc)} - Correlation ID: {correlation_id}")
+    
     return JSONResponse(
-        status_code=503,
+        status_code=500,
         content={
-            "error": "service_unavailable",
-            "message": "Upstream service is temporarily unavailable",
-            "retry_after": 30
-        }
-    )
-
-@app.exception_handler(httpx.HTTPStatusError)
-async def http_status_error_handler(request: Request, exc: httpx.HTTPStatusError):
-    """Handle HTTP errors from services"""
-    return JSONResponse(
-        status_code=exc.response.status_code,
-        content={
-            "error": "upstream_error",
-            "message": f"Service returned {exc.response.status_code}",
-            "details": exc.response.text if exc.response.text else None
+            "error": "Internal Server Error",
+            "message": "An unexpected error occurred",
+            "correlation_id": correlation_id
         }
     )
 
@@ -91,27 +105,7 @@ async def http_status_error_handler(request: Request, exc: httpx.HTTPStatusError
 async def startup_event():
     """Initialize gateway resources"""
     logger.info("🚀 API Gateway starting up...")
-    
-    # Health check tất cả services
-    services = {
-        "auth": settings.AUTH_SERVICE_URL,
-        "vehicle": settings.VEHICLE_SERVICE_URL,
-        "location": settings.LOCATION_SERVICE_URL,
-        "notification": settings.NOTIFICATION_SERVICE_URL
-    }
-    
-    async with httpx.AsyncClient() as client:
-        for service_name, service_url in services.items():
-            try:
-                response = await client.get(f"{service_url}/health", timeout=5.0)
-                if response.status_code == 200:
-                    logger.info(f"✅ {service_name} service is healthy")
-                else:
-                    logger.warning(f"⚠️  {service_name} service returned {response.status_code}")
-            except Exception as e:
-                logger.error(f"❌ {service_name} service is unreachable: {e}")
-
-    logger.info("🎯 API Gateway ready to serve requests")
+    logger.info("✅ API Gateway ready")
 
 @app.on_event("shutdown")
 async def shutdown_event():

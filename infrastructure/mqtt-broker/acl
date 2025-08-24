@@ -1,0 +1,15 @@
+# MQTT Broker Access Control List
+
+# Allow mqtt_user to access all topics
+user mqtt_user
+topic readwrite #
+
+# Default deny all for anonymous users
+pattern read $SYS/broker/connection/%c/state
+
+# Fleet specific topics
+topic readwrite fleet/+/+
+topic readwrite fleet/vehicles/+/location
+topic readwrite fleet/vehicles/+/status
+topic readwrite fleet/vehicles/+/alert
+topic read fleet/system/broadcast

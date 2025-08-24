@@ -3,19 +3,21 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
-from typing import AsyncGenerator
+from typing import Generator
 import logging
 
 from .config import settings
 
 logger = logging.getLogger(__name__)
 
-# Database engine
+# Database engine with correct configuration
 engine = create_engine(
     settings.DATABASE_URL,
     pool_size=settings.DB_POOL_SIZE,
     max_overflow=settings.DB_MAX_OVERFLOW,
     echo=settings.DEBUG,
+    pool_pre_ping=True,  # Test connections before use
+    connect_args={"connect_timeout": 10}  # Connection timeout
 )
 
 # Session factory
@@ -24,7 +26,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # Base class for models
 Base = declarative_base()
 
-async def get_db() -> AsyncGenerator[Session, None]:
+def get_db() -> Session:
     """Database session dependency"""
     db = SessionLocal()
     try:

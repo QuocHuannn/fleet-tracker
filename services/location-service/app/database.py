@@ -1,56 +1,54 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import declarative_base
-from contextlib import asynccontextmanager
-from typing import AsyncGenerator
-from geoalchemy2 import Geometry
+# Location Service Database Connection
 
-from app.config import settings
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, Session
+from typing import Generator
+import logging
+import os
 
-# Tạo SQLAlchemy engine
-engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=settings.LOG_LEVEL == "DEBUG",
-    pool_size=settings.DB_POOL_SIZE,
-    max_overflow=settings.DB_MAX_OVERFLOW,
-    pool_timeout=settings.DB_POOL_TIMEOUT
+logger = logging.getLogger(__name__)
+
+# Database URL from environment or default
+DATABASE_URL = os.getenv("LOCATION_DB_URL", "postgresql+psycopg2://location_user:location_password@location-db:5432/location_db")
+
+# Database engine
+engine = create_engine(
+    DATABASE_URL,
+    pool_size=int(os.getenv("DB_POOL_SIZE", "10")),
+    max_overflow=int(os.getenv("DB_MAX_OVERFLOW", "20")),
+    echo=os.getenv("DEBUG", "false").lower() == "true",
+    pool_pre_ping=True,
+    connect_args={"connect_timeout": 10}
 )
 
-# Tạo session factory
-async_session_factory = async_sessionmaker(
-    engine,
-    expire_on_commit=False,
-    class_=AsyncSession
-)
+# Session factory
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base class cho models
+# Base class for models
 Base = declarative_base()
 
-async def init_db():
-    """
-    Khởi tạo database connection và tạo tables nếu cần
-    """
-    async with engine.begin() as conn:
-        # Tạo tables nếu chưa tồn tại
-        # await conn.run_sync(Base.metadata.create_all)
-        pass
-
-async def close_db():
-    """
-    Đóng database connection
-    """
-    await engine.dispose()
-
-@asynccontextmanager
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """
-    Dependency để lấy database session
-    """
-    session = async_session_factory()
+def get_db() -> Generator[Session, None, None]:
+    """Database session dependency"""
+    db = SessionLocal()
     try:
-        yield session
-        await session.commit()
-    except Exception:
-        await session.rollback()
-        raise
+        yield db
     finally:
-        await session.close()
+        db.close()
+
+async def init_db() -> None:
+    """Initialize database"""
+    try:
+        # Import models to ensure tables are created
+        # TODO: Add actual models import when ready
+        
+        Base.metadata.create_all(bind=engine)
+        logger.info("✅ Location Service database initialized")
+    except Exception as e:
+        logger.error(f"❌ Database initialization failed: {e}")
+        raise
+
+async def close_db() -> None:
+    """Close database connections"""
+    engine.dispose()
+    logger.info("✅ Location Service database connections closed")
