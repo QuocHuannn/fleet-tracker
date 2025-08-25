@@ -4,6 +4,14 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 import uuid
 
+# SQLAlchemy imports
+from sqlalchemy import Column, String, DateTime, Float, Integer, Boolean, Text, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+
+from ..database import Base
+
 class LocationData(BaseModel):
     """GPS location data from devices"""
     
@@ -98,6 +106,52 @@ class GeofenceViolation(BaseModel):
     geofence_name: str
     violation_type: str  # entry, exit, speed_violation
     vehicle_id: str
-    location: LocationData
+    location_data: LocationData
+    violation_time: datetime
     severity: str = "medium"  # low, medium, high, critical
-    description: str
+
+# SQLAlchemy Models
+
+class Location(Base):
+    """Location data database model"""
+    __tablename__ = "locations"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    vehicle_id = Column(String(255), nullable=False, index=True)
+    device_id = Column(String(255), index=True)
+    
+    # GPS coordinates
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    altitude = Column(Float)
+    
+    # Motion data
+    speed = Column(Float)
+    heading = Column(Integer)
+    
+    # GPS quality
+    accuracy = Column(Float)
+    satellites = Column(Integer)
+    hdop = Column(Float)
+    
+    # Vehicle data
+    odometer = Column(Float)
+    fuel_level = Column(Float)
+    battery_voltage = Column(Float)
+    temperature = Column(Float)
+    engine_status = Column(String(50))
+    
+    # Timestamps
+    recorded_at = Column(DateTime(timezone=True), nullable=False)
+    received_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Raw data
+    raw_data = Column(JSONB, default={})
+    
+    # Computed fields
+    is_valid = Column(Boolean, default=True)
+    validation_errors = Column(JSONB, default=[])
+    processed_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    def __repr__(self):
+        return f"<Location(vehicle_id='{self.vehicle_id}', lat={self.latitude}, lng={self.longitude})>"

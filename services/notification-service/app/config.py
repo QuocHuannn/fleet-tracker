@@ -1,7 +1,8 @@
 # Notification Service Configuration
 
 from pydantic_settings import BaseSettings
-from typing import List
+from pydantic import field_validator
+from typing import List, Union
 from functools import lru_cache
 import os
 
@@ -40,7 +41,12 @@ class Settings(BaseSettings):
     SMS_PROVIDER_API_KEY: str = os.getenv("SMS_PROVIDER_API_KEY", "")
     
     # CORS Configuration
-    CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:8000").split(",")
+    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:8000"
+    
+    @property
+    def cors_origins_list(self) -> List[str]:
+        """Convert CORS_ORIGINS string to list"""
+        return self.CORS_ORIGINS.split(",")
     
     class Config:
         env_file = ".env"

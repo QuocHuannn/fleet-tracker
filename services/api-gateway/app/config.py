@@ -1,8 +1,10 @@
 # API Gateway Configuration
 # Environment settings và service URLs
 
+import os
 from pydantic_settings import BaseSettings
-from typing import List
+from pydantic import model_validator
+from typing import List, Union
 from functools import lru_cache
 
 class Settings(BaseSettings):
@@ -12,6 +14,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "Fleet Tracker API Gateway"
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
+    LOG_LEVEL: str = "DEBUG"
     
     # Service URLs
     AUTH_SERVICE_URL: str = "http://auth-service:8001"
@@ -20,7 +23,16 @@ class Settings(BaseSettings):
     NOTIFICATION_SERVICE_URL: str = "http://notification-service:8004"
     
     # CORS Configuration
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8000"]
+    CORS_ORIGINS: Union[str, List[str]] = "http://localhost:3000,http://localhost:8000"
+    
+    @model_validator(mode='before')
+    @classmethod
+    def parse_cors_origins(cls, values):
+        if isinstance(values, dict) and 'CORS_ORIGINS' in values:
+            cors_origins = values['CORS_ORIGINS']
+            if isinstance(cors_origins, str):
+                values['CORS_ORIGINS'] = cors_origins.split(",")
+        return values
     
     # Rate Limiting
     RATE_LIMIT_REQUESTS_PER_MINUTE: int = 1000

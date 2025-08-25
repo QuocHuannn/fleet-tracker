@@ -1,142 +1,99 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { firebaseAuthService, User, LoginCredentials } from '../services/firebaseAuthService';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { authService } from '../services/authService';
 
-// Auth context để quản lý trạng thái xác thực người dùng với Firebase
+interface User {
+  id: string;
+  email: string;
+  displayName?: string;
+  role: string;
+}
 
-interface AuthState {
+interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
-  initialized: boolean;
-}
-
-interface AuthContextType extends AuthState {
-  login: (credentials: LoginCredentials) => Promise<void>;
-  logout: () => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
   clearError: () => void;
-  refreshToken: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Actions
-type AuthAction = 
-  | { type: 'AUTH_START' }
-  | { type: 'AUTH_SUCCESS'; user: User }
-  | { type: 'AUTH_ERROR'; error: string }
-  | { type: 'LOGOUT' }
-  | { type: 'CLEAR_ERROR' }
-  | { type: 'INITIALIZE'; user: User | null };
-
-// Reducer
-function authReducer(state: AuthState, action: AuthAction): AuthState {
-  switch (action.type) {
-    case 'AUTH_START':
-      return { ...state, loading: true, error: null };
-    case 'AUTH_SUCCESS':
-      return { ...state, loading: false, user: action.user, error: null, initialized: true };
-    case 'AUTH_ERROR':
-      return { ...state, loading: false, error: action.error };
-    case 'LOGOUT':
-      return { ...state, user: null, loading: false, error: null };
-    case 'CLEAR_ERROR':
-      return { ...state, error: null };
-    case 'INITIALIZE':
-      return { ...state, user: action.user, initialized: true, loading: false };
-    default:
-      return state;
-  }
+interface AuthProviderProps {
+  children: ReactNode;
 }
 
-// Provider component
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(authReducer, {
-    user: null,
-    loading: false,
-    error: null,
-    initialized: false
-  });
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Initialize auth state
   useEffect(() => {
-    const initializeAuth = async () => {
+    // Check if user is already authenticated
+    const checkAuth = async () => {
       try {
-        const user = await firebaseAuthService.getCurrentUser();
-        dispatch({ type: 'INITIALIZE', user });
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          const userData = await authService.validateToken(token);
+          setUser(userData);
+        }
       } catch (error) {
-        console.error('Error initializing auth:', error);
-        dispatch({ type: 'INITIALIZE', user: null });
+        console.error('Auth check failed:', error);
+        localStorage.removeItem('authToken');
+      } finally {
+        setLoading(false);
       }
     };
 
-    initializeAuth();
+    checkAuth();
+  }, []);
 
-    // Listen for auth state changes
-    const unsubscribe = firebaseAuthService.onAuthStateChanged((user) => {
-      if (state.initialized) {
-        if (user) {
-          dispatch({ type: 'AUTH_SUCCESS', user });
-        } else {
-          dispatch({ type: 'LOGOUT' });
-        }
-      }
-    });
-
-    return unsubscribe;
-  }, [state.initialized]);
-
-  const login = async (credentials: LoginCredentials) => {
-    dispatch({ type: 'AUTH_START' });
+  const login = async (email: string, password: string) => {
     try {
-      const user = await firebaseAuthService.login(credentials);
-      dispatch({ type: 'AUTH_SUCCESS', user });
+      setError(null);
+      setLoading(true);
+      
+      const { user: userData, token } = await authService.login({ email, password });
+      setUser(userData);
+      localStorage.setItem('authToken', token);
     } catch (error: any) {
-      dispatch({ type: 'AUTH_ERROR', error: error.message });
+      setError(error.response?.data?.detail || 'Login failed. Please check your credentials.');
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
-  const logout = async () => {
-    try {
-      await firebaseAuthService.logout();
-      dispatch({ type: 'LOGOUT' });
-    } catch (error: any) {
-      dispatch({ type: 'AUTH_ERROR', error: error.message });
-      throw error;
-    }
-  };
-
-  const refreshToken = async () => {
-    try {
-      await firebaseAuthService.refreshToken();
-    } catch (error: any) {
-      dispatch({ type: 'AUTH_ERROR', error: error.message });
-      throw error;
-    }
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('authToken');
+    authService.logout();
   };
 
   const clearError = () => {
-    dispatch({ type: 'CLEAR_ERROR' });
+    setError(null);
+  };
+
+  const value: AuthContextType = {
+    user,
+    loading,
+    error,
+    login,
+    logout,
+    clearError
   };
 
   return (
-    <AuthContext.Provider value={{
-      ...state,
-      login,
-      logout,
-      clearError,
-      refreshToken,
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-// Hook to use auth context
-export function useAuth() {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}
+};

@@ -4,168 +4,168 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 export interface Vehicle {
   id: string;
-  name: string;
   license_plate: string;
-  type: string;
-  status: string;
-  description?: string;
+  make: string;
+  model: string;
+  year: number;
+  status: 'active' | 'inactive' | 'maintenance';
+  device_id?: string;
+  last_location?: {
+    latitude: number;
+    longitude: number;
+    timestamp: string;
+  };
+  current_speed?: number;
+  total_distance?: number;
   created_at: string;
   updated_at: string;
 }
 
-export interface VehicleCreate {
-  name: string;
+export interface CreateVehicleRequest {
   license_plate: string;
-  type: string;
-  status?: string;
-  description?: string;
+  make: string;
+  model: string;
+  year: number;
+  device_id?: string | undefined;
 }
 
-export interface VehicleUpdate {
-  name?: string;
+export interface UpdateVehicleRequest {
   license_plate?: string;
-  type?: string;
-  status?: string;
-  description?: string;
-}
-
-export interface VehicleFilters {
-  status?: string;
-  type?: string;
-  search?: string;
-  skip?: number;
-  limit?: number;
+  make?: string;
+  model?: string;
+  year?: number;
+  status?: 'active' | 'inactive' | 'maintenance';
+  device_id?: string;
 }
 
 class VehicleService {
+  private getAuthHeaders() {
+    const token = localStorage.getItem('authToken');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+
   /**
-   * Lấy danh sách xe
+   * Lấy danh sách tất cả vehicles
    */
-  async getVehicles(filters?: VehicleFilters): Promise<Vehicle[]> {
+  async getVehicles(): Promise<Vehicle[]> {
     try {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-      
-      // Xây dựng query params
-      const params = new URLSearchParams();
-      if (filters) {
-        if (filters.status) params.append('status', filters.status);
-        if (filters.type) params.append('type', filters.type);
-        if (filters.search) params.append('search', filters.search);
-        if (filters.skip !== undefined) params.append('skip', filters.skip.toString());
-        if (filters.limit !== undefined) params.append('limit', filters.limit.toString());
-      }
-      
-      const response = await axios.get(`${API_URL}/api/v1/vehicles`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        params
+      const response = await axios.get(`${API_URL}/vehicles/`, {
+        headers: this.getAuthHeaders()
       });
-      
       return response.data;
     } catch (error) {
-      console.error('Get vehicles error:', error);
+      console.error('Error fetching vehicles:', error);
       throw error;
     }
   }
 
   /**
-   * Lấy thông tin chi tiết của một xe
+   * Lấy thông tin vehicle theo ID
    */
   async getVehicle(id: string): Promise<Vehicle> {
     try {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-      
-      const response = await axios.get(`${API_URL}/api/v1/vehicles/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      const response = await axios.get(`${API_URL}/vehicles/${id}`, {
+        headers: this.getAuthHeaders()
       });
-      
       return response.data;
     } catch (error) {
-      console.error(`Get vehicle ${id} error:`, error);
+      console.error('Error fetching vehicle:', error);
       throw error;
     }
   }
 
   /**
-   * Tạo xe mới
+   * Tạo vehicle mới
    */
-  async createVehicle(data: VehicleCreate): Promise<Vehicle> {
+  async createVehicle(vehicleData: CreateVehicleRequest): Promise<Vehicle> {
     try {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-      
-      const response = await axios.post(`${API_URL}/api/v1/vehicles`, data, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      const response = await axios.post(`${API_URL}/vehicles/`, vehicleData, {
+        headers: this.getAuthHeaders()
       });
-      
       return response.data;
     } catch (error) {
-      console.error('Create vehicle error:', error);
+      console.error('Error creating vehicle:', error);
       throw error;
     }
   }
 
   /**
-   * Cập nhật thông tin xe
+   * Cập nhật vehicle
    */
-  async updateVehicle(id: string, data: VehicleUpdate): Promise<Vehicle> {
+  async updateVehicle(id: string, vehicleData: UpdateVehicleRequest): Promise<Vehicle> {
     try {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-      
-      const response = await axios.put(`${API_URL}/api/v1/vehicles/${id}`, data, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      const response = await axios.put(`${API_URL}/vehicles/${id}`, vehicleData, {
+        headers: this.getAuthHeaders()
       });
-      
       return response.data;
     } catch (error) {
-      console.error(`Update vehicle ${id} error:`, error);
+      console.error('Error updating vehicle:', error);
       throw error;
     }
   }
 
   /**
-   * Xóa xe
+   * Xóa vehicle
    */
   async deleteVehicle(id: string): Promise<void> {
     try {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-      
-      await axios.delete(`${API_URL}/api/v1/vehicles/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      await axios.delete(`${API_URL}/vehicles/${id}`, {
+        headers: this.getAuthHeaders()
       });
     } catch (error) {
-      console.error(`Delete vehicle ${id} error:`, error);
+      console.error('Error deleting vehicle:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Lấy vị trí hiện tại của vehicle
+   */
+  async getVehicleLocation(id: string): Promise<{
+    latitude: number;
+    longitude: number;
+    timestamp: string;
+    speed?: number;
+  }> {
+    try {
+      const response = await axios.get(`${API_URL}/vehicles/${id}/location`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching vehicle location:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Lấy lịch sử vị trí của vehicle
+   */
+  async getVehicleLocationHistory(
+    id: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<Array<{
+    latitude: number;
+    longitude: number;
+    timestamp: string;
+    speed?: number;
+  }>> {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
+
+      const response = await axios.get(`${API_URL}/vehicles/${id}/location/history?${params}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching vehicle location history:', error);
       throw error;
     }
   }
 }
 
-export default new VehicleService();
+export const vehicleService = new VehicleService();
+export default vehicleService;

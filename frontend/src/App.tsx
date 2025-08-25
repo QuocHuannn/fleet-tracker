@@ -4,48 +4,118 @@
  */
 
 import React from 'react';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { CssBaseline, Box } from '@mui/material';
 
-// TODO: Import routing and providers
-// import { BrowserRouter as Router } from 'react-router-dom';
-// import { ThemeProvider } from '@mui/material/styles';
-// import { CssBaseline } from '@mui/material';
-// import { AuthProvider } from './contexts/AuthContext';
-// import { WebSocketProvider } from './contexts/WebSocketContext';
-// import { theme } from './theme';
-// import AppRoutes from './routes/AppRoutes';
+// Components
+import Header from './components/Layout/Header';
+import LoginForm from './components/Auth/LoginForm';
+import Dashboard from './components/Dashboard/Dashboard';
+import VehicleList from './components/Vehicles/VehicleList';
+import LiveMap from './components/Map/LiveMap';
+
+// Contexts
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+  },
+});
+
+function AppContent() {
+  const { user, loading, error } = useAuth();
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+        <div>Loading...</div>
+      </Box>
+    );
+  }
+
+  return (
+    <Router>
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Header />
+        
+        <Box component="main" sx={{ flexGrow: 1 }}>
+          <Routes>
+            <Route 
+              path="/login" 
+              element={
+                !user ? (
+                  <LoginForm />
+                ) : (
+                  <Navigate to="/dashboard" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/dashboard" 
+              element={
+                user ? (
+                  <Dashboard />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/vehicles" 
+              element={
+                user ? (
+                  <Box sx={{ p: 3 }}>
+                    <VehicleList />
+                  </Box>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/map" 
+              element={
+                user ? (
+                  <Box sx={{ p: 3 }}>
+                    <LiveMap />
+                  </Box>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/" 
+              element={
+                user ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+          </Routes>
+        </Box>
+      </Box>
+    </Router>
+  );
+}
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>🚚 Fleet Tracker</h1>
-        <p>
-          Real-time GPS Vehicle Tracking System
-        </p>
-        <p>
-          <strong>Status:</strong> Development Mode
-        </p>
-        <div style={{ marginTop: '2rem', fontSize: '14px', color: '#888' }}>
-          <p>Backend API: <code>http://localhost:8000</code></p>
-          <p>Frontend Dev Server: <code>http://localhost:3000</code></p>
-        </div>
-      </header>
-      
-      {/* TODO: Add routing and main application */}
-      {/* 
-      <Router>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <AuthProvider>
-            <WebSocketProvider>
-              <AppRoutes />
-            </WebSocketProvider>
-          </AuthProvider>
-        </ThemeProvider>
-      </Router>
-      */}
-    </div>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

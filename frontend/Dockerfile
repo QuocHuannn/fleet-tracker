@@ -1,5 +1,5 @@
 # Fleet Tracker Frontend Dockerfile
-# Development version
+# Development version - Optimized
 
 FROM node:18-alpine
 
@@ -9,7 +9,10 @@ LABEL description="Fleet Tracker Frontend React Application"
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Install curl for health check
+RUN apk add --no-cache curl
+
+# Copy package files first for better caching
 COPY package*.json ./
 
 # Install dependencies
@@ -19,9 +22,9 @@ RUN npm install
 COPY . .
 
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S reactjs -u 1001
-RUN chown -R reactjs:nodejs /app
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S reactjs -u 1001 && \
+    chown -R reactjs:nodejs /app
 USER reactjs
 
 # Health check

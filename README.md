@@ -1,209 +1,232 @@
-# 🚚 Fleet Tracker
+# 🚛 Fleet Tracker
 
-### Real-time GPS Vehicle Tracking System
+Real-time GPS vehicle tracking system built with microservices architecture.
 
-![Typing SVG](https://readme-typing-svg.herokuapp.com?font=Fira+Code&pause=1000&color=3FB3D3&width=435&lines=Real-time+GPS+Vehicle+Tracking;True+Microservices+Architecture;Distributed+Systems+Learning)
+## 🎯 Project Status
 
-Fleet Tracker là hệ thống quản lý đội xe enterprise-grade được xây dựng theo **True Microservices Architecture**. Hệ thống cung cấp theo dõi GPS thời gian thực, lịch sử di chuyển, geofencing và phân tích fleet với khả năng mở rộng và độ tin cậy cao.
+### ✅ **COMPLETED (85%)**
+- **Infrastructure**: 100% - Docker, databases, MQTT, Redis
+- **Backend Services**: 85% - 4/5 services operational
+- **API Gateway**: 100% - Routing & authentication
+- **Database Models**: 90% - All core models implemented
+- **Integration Tests**: 100% - All tests passing
 
-## ✨ Core Features
+### 🚧 **IN PROGRESS (15%)**
+- **Frontend Development**: 30% - Basic components created
+- **Notification Service**: 80% - Minor Pydantic issues
+- **Real-time Features**: 20% - WebSocket setup in progress
 
-- 🗺️ **Real-time GPS Tracking** - Cập nhật vị trí xe theo thời gian thực
-- 📊 **Interactive Dashboard** - Tổng quan fleet với map và metrics
-- 🚗 **Vehicle Management** - Quản lý thông tin xe và trạng thái  
-- 🔐 **Authentication & Authorization** - Firebase Auth với role-based permissions
-- 🚨 **Smart Alerts** - Cảnh báo vi phạm tốc độ, geofence violations
-- 📈 **Analytics & Reports** - Báo cáo hiệu suất và thống kê fleet
-
-## 🏗️ Microservices Architecture
-
-```
-                            ┌─────────────────┐
-                            │   API Gateway   │ ← Frontend (React)
-                            │    (Port 8000)  │
-                            └─────────┬───────┘
-                                      │
-                    ┌─────────────────┼─────────────────┐
-                    │                 │                 │
-            ┌───────▼──────┐ ┌───────▼──────┐ ┌───────▼──────┐
-            │ Auth Service │ │Vehicle Service│ │Location Service│
-            │ (Port 8001)  │ │ (Port 8002)  │ │ (Port 8003)  │
-            └──────────────┘ └──────────────┘ └──────────────┘
-                    │                 │                 │
-            ┌───────▼──────┐          │         ┌───────▼──────┐
-            │   User DB    │          │         │  Location DB │
-            │ (PostgreSQL) │          │         │ (PostgreSQL  │
-            └──────────────┘          │         │  + PostGIS)  │
-                                      │         └──────────────┘
-                              ┌───────▼──────┐
-                              │  Vehicle DB  │         ┌─────────────────┐
-                              │ (PostgreSQL) │         │Notification Svc │
-                              └──────────────┘         │ (Port 8004)     │
-                                                       └─────────────────┘
-                                      │
-                            ┌─────────▼──────────┐
-                            │    Shared Layer    │
-                            │ Redis + MQTT Broker │
-GPS Devices ────────────────┴────────────────────┘
-```
-
-### 🎯 Microservices Overview
-- **API Gateway (8000)**: Request routing, authentication, rate limiting
-- **Auth Service (8001)**: User authentication & authorization với Firebase
-- **Vehicle Service (8002)**: Vehicle management & device registration  
-- **Location Service (8003)**: GPS data processing & spatial operations
-- **Notification Service (8004)**: Real-time alerts & WebSocket connections
-
-## 🛠️ Tech Stack
-
-<div align="center">
-
-### Backend
-![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-![Redis](https://img.shields.io/badge/Redis-6+-DC382D?style=for-the-badge&logo=redis&logoColor=white)
-![MQTT](https://img.shields.io/badge/MQTT-Mosquitto-brightgreen?style=for-the-badge)
-![Firebase](https://img.shields.io/badge/Firebase-Authentication-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
-
-### Frontend
-![React](https://img.shields.io/badge/React-18+-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-![Mapbox](https://img.shields.io/badge/Mapbox-000000?style=for-the-badge&logo=mapbox&logoColor=white)
-![WebSocket](https://img.shields.io/badge/WebSocket-Client-4A90E2?style=for-the-badge)
-![MaterialUI](https://img.shields.io/badge/Material--UI-0081CB?style=for-the-badge&logo=material-ui&logoColor=white)
-
-### Infrastructure
-![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
-![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white)
-![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=prometheus&logoColor=white)
-![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)
-![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
-
-</div>
-
-## 🚀 Quick Development Setup
+## 🚀 Quick Start
 
 ### Prerequisites
 - Docker & Docker Compose
-- Git
-- Firebase project
-- Mapbox access token
+- Node.js 18+ (for frontend development)
 
-### Getting Started
+### 1. Start Backend Services
 ```bash
-# 1. Clone repository
-git clone https://github.com/QuocHuannn/fleet-tracker.git
-cd fleet-tracker
+# Start all backend services
+docker compose -f docker-compose.dev.yml up -d
 
-# 2. Setup environment
-cp .env.example .env
-# Edit .env with your configurations
-
-# 3. Start all services
-docker-compose up -d
-
-# 4. Run database migrations cho tất cả services
-docker-compose exec auth-service alembic upgrade head
-docker-compose exec vehicle-service alembic upgrade head  
-docker-compose exec location-service alembic upgrade head
-docker-compose exec notification-service alembic upgrade head
-
-# 5. Access microservices
-# API Gateway: http://localhost:8000
-# Auth Service: http://localhost:8001/docs
-# Vehicle Service: http://localhost:8002/docs
-# Location Service: http://localhost:8003/docs
-# Notification Service: http://localhost:8004/docs
-# Frontend: http://localhost:3000
+# Check status
+./scripts/test-integration.sh
 ```
 
-## 🐳 Microservices Containers
-
-- **api-gateway** (port 8000) - Request routing & authentication
-- **auth-service** (port 8001) - User management & JWT validation
-- **vehicle-service** (port 8002) - Vehicle CRUD & device management
-- **location-service** (port 8003) - GPS processing & spatial queries
-- **notification-service** (port 8004) - Alerts & real-time notifications
-- **frontend** (port 3000) - React SPA với map integration
-- **Multiple Databases** - PostgreSQL per service + Redis shared cache
-- **mosquitto** (ports 1883/8883) - MQTT broker cho GPS devices
-
-## 📚 API Overview
-
-**API Gateway (Port 8000)**
-- `GET /health` - System health check
-- `POST /auth/*` - Proxy to Auth Service
-- `GET /vehicles/*` - Proxy to Vehicle Service
-- `GET /locations/*` - Proxy to Location Service
-- `WebSocket /ws` - Real-time notifications
-
-**Auth Service (Port 8001)**
-- `POST /login` - Firebase authentication
-- `POST /refresh` - JWT token refresh
-- `GET /users/profile` - User profile management
-
-**Vehicle Service (Port 8002)**
-- `GET /vehicles` - Vehicle management
-- `POST /vehicles` - Register new vehicle
-- `PUT /vehicles/{id}` - Update vehicle info
-
-**Location Service (Port 8003)**
-- `GET /locations/current` - Real-time positions
-- `GET /locations/history` - Historical GPS data
-- `POST /geofences` - Geofence management
-
-**Notification Service (Port 8004)**
-- `GET /alerts` - Alert management
-- `WebSocket /notifications` - Real-time updates
-- `POST /notifications/rules` - Alert rules
-
-Xem chi tiết: http://localhost:8000/docs (API Gateway)
-
-## 📊 Key Features Implementation
-
-**Microservices Benefits**
-- **Independent Scaling**: Mỗi service scale riêng biệt based on load
-- **Fault Isolation**: Service failure không affect toàn bộ system
-- **Technology Diversity**: Different tech stacks per service optimization
-- **Parallel Development**: Teams có thể work independently trên services
-
-**Distributed Architecture**
-- **Service Discovery**: Automatic service registration & discovery
-- **Load Balancing**: Multiple instances per service
-- **Circuit Breaker**: Fault tolerance patterns implementation
-- **Event-Driven**: Async communication với message queues
-
-**Enterprise Security**
-- **JWT Authentication**: Service-to-service security
-- **API Gateway**: Central authentication & authorization point
-- **Database Isolation**: Separate databases per service
-- **mTLS Communication**: Secure inter-service communication
-
-## 🚀 Production Deployment
-
+### 2. Start Frontend Development
 ```bash
-# Production deployment với Docker Compose
-docker-compose -f docker-compose.prod.yml up -d
+# Option 1: Using Docker (Recommended)
+./scripts/dev-frontend.sh
 
-# SSL setup với Let's Encrypt
-sudo certbot --nginx -d your-domain.com
+# Option 2: Local development
+cd frontend
+npm install
+npm start
 ```
 
-CI/CD pipeline tự động test, build images và deploy khi push to main branch.
+### 3. Access Services
+- **Frontend**: http://localhost:3000
+- **API Gateway**: http://localhost:8000
+- **API Documentation**: http://localhost:8000/docs
+
+## 🏗️ Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │  API Gateway    │    │  Auth Service   │
+│   (React)       │◄──►│   (FastAPI)     │◄──►│   (FastAPI)     │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                              │                        │
+                              ▼                        ▼
+                       ┌─────────────────┐    ┌─────────────────┐
+                       │ Vehicle Service │    │ Location Service│
+                       │   (FastAPI)     │    │   (FastAPI)     │
+                       └─────────────────┘    └─────────────────┘
+                              │                        │
+                              ▼                        ▼
+                       ┌─────────────────┐    ┌─────────────────┐
+                       │ Notification    │    │   Databases     │
+                       │   Service       │    │  (PostgreSQL)   │
+                       └─────────────────┘    └─────────────────┘
+```
+
+## 📊 Service Status
+
+| Service | Status | Port | Health |
+|---------|--------|------|--------|
+| API Gateway | ✅ Running | 8000 | Healthy |
+| Auth Service | ✅ Running | 8001 | Healthy |
+| Vehicle Service | ✅ Running | 8002 | Healthy |
+| Location Service | ✅ Running | 8003 | Healthy |
+| Notification Service | ⚠️ Issues | 8004 | Error |
+| Frontend | 🚧 Development | 3000 | - |
+
+## 🗄️ Database Schema
+
+### Auth Service
+- **Users**: Authentication & user management
+- **Roles**: Role-based access control
+- **Sessions**: User session tracking
+
+### Vehicle Service
+- **Vehicles**: Vehicle information & metadata
+- **Devices**: GPS device management
+
+### Location Service
+- **Locations**: GPS coordinates & tracking data
+- **Geofences**: Geographic boundaries
+- **Trips**: Journey tracking & analysis
+
+### Notification Service
+- **Alerts**: Real-time notifications
+- **Rules**: Alert configuration
+- **WebSocket**: Real-time connections
+
+## 🔧 Development
+
+### Backend Development
+```bash
+# Start development environment
+docker compose -f docker-compose.dev.yml up -d
+
+# View logs
+docker compose -f docker-compose.dev.yml logs -f [service-name]
+
+# Restart service
+docker compose -f docker-compose.dev.yml restart [service-name]
+```
+
+### Frontend Development
+```bash
+# Start frontend development
+./scripts/dev-frontend.sh
+
+# Or local development
+cd frontend
+npm install
+npm start
+```
+
+### Testing
+```bash
+# Run integration tests
+./scripts/test-integration.sh
+
+# Run frontend tests
+cd frontend && npm test
+```
+
+## 📁 Project Structure
+
+```
+Fleet Tracker/
+├── .cursor-plan/           # Project planning documents
+├── services/               # Microservices
+│   ├── api-gateway/        # API Gateway service
+│   ├── auth-service/       # Authentication service
+│   ├── vehicle-service/    # Vehicle management
+│   ├── location-service/   # GPS & geofencing
+│   └── notification-service/ # Alerts & notifications
+├── frontend/               # React frontend application
+├── infrastructure/         # Infrastructure configs
+│   ├── databases/          # Database initialization
+│   ├── mqtt-broker/        # MQTT configuration
+│   └── nginx/              # Reverse proxy config
+├── shared/                 # Shared libraries
+├── scripts/                # Development scripts
+├── tests/                  # Integration tests
+└── docker-compose.dev.yml  # Development environment
+```
+
+## 🔌 API Endpoints
+
+### Authentication
+- `POST /auth/login` - User login
+- `POST /auth/register` - User registration
+- `GET /auth/validate-token` - Token validation
+
+### Vehicles
+- `GET /vehicles/` - List vehicles
+- `POST /vehicles/` - Create vehicle
+- `GET /vehicles/{id}` - Get vehicle details
+- `PUT /vehicles/{id}` - Update vehicle
+- `DELETE /vehicles/{id}` - Delete vehicle
+
+### Locations
+- `GET /locations/` - Get location history
+- `POST /locations/` - Add location data
+- `GET /locations/current` - Current locations
+- `GET /geofences/` - List geofences
+
+### Notifications
+- `GET /alerts/` - List alerts
+- `POST /alerts/` - Create alert
+- `WS /ws` - WebSocket connection
+
+## 🚧 Roadmap
+
+### Phase 1: Core Services ✅ (85% Complete)
+- [x] Infrastructure setup
+- [x] API Gateway
+- [x] Authentication service
+- [x] Vehicle management
+- [x] Location tracking
+- [ ] Notification service (minor issues)
+
+### Phase 2: Frontend Development 🚧 (30% Complete)
+- [x] Project structure
+- [x] Basic components
+- [ ] Authentication pages
+- [ ] Dashboard
+- [ ] Live map
+- [ ] Vehicle management UI
+
+### Phase 3: Real-time Features 🚧 (20% Complete)
+- [x] WebSocket setup
+- [ ] Real-time location updates
+- [ ] Live alerts
+- [ ] Geofence notifications
+
+### Phase 4: Production Deployment 📋 (0% Complete)
+- [ ] Kubernetes deployment
+- [ ] CI/CD pipeline
+- [ ] Monitoring & logging
+- [ ] Performance optimization
+
+## 🤝 Contributing
+
+1. Follow the existing code style
+2. Add tests for new features
+3. Update documentation
+4. Use conventional commits
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file.
+This project is licensed under the MIT License.
+
+## 👨‍💻 Author
+
+**Trương Quốc Huân** - [truonghuan0709@gmail.com](mailto:truonghuan0709@gmail.com)
 
 ---
 
-## 📞 Contact & Author
-
-| <img src="https://media.giphy.com/media/MeJgB3yMwRILY5YDKR/giphy.gif" width="30"> **Email** | <img src="https://media.giphy.com/media/Q7LHmoFwVP6Yc3lU8r/giphy.gif" width="30"> **Location** | <img src="https://media.giphy.com/media/WUlplcMpOCEmTGBtBW/giphy.gif" width="30"> **Phone** |
-| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| [truonghuan0709@gmail.com](mailto:truonghuan0709@gmail.com) | TP. Hồ Chí Minh, Việt Nam | +84 335 597 676 |
----
-
-**⭐ Crafted with passion by [Trương Quốc Huân](https://github.com/QuocHuannn)** ❤️
+**Last Updated**: August 25, 2024  
+**Status**: Development in Progress (85% Complete)

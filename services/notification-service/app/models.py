@@ -25,7 +25,7 @@ class Alert(Base):
     latitude = Column(DECIMAL(10, 8), nullable=True)
     longitude = Column(DECIMAL(11, 8), nullable=True)
     address = Column(Text, nullable=True)
-    metadata = Column(JSONB, default={})
+    alert_metadata = Column('metadata', JSONB, default={})
     acknowledged_by = Column(UUID(as_uuid=True), nullable=True)
     acknowledged_at = Column(DateTime(timezone=True), nullable=True)
     resolved_by = Column(UUID(as_uuid=True), nullable=True)
@@ -66,7 +66,7 @@ class NotificationRule(Base):
     escalation_channels = Column(ARRAY(String), nullable=True)
     priority = Column(Integer, default=1)
     created_by = Column(UUID(as_uuid=True), nullable=False)
-    metadata = Column(JSONB, default={})
+    rule_metadata = Column('metadata', JSONB, default={})
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

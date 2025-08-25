@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
-from typing import List, Optional
+from pydantic import model_validator
+from typing import List, Optional, Union
 import os
 from functools import lru_cache
 
@@ -23,7 +24,19 @@ class Settings(BaseSettings):
     DB_POOL_TIMEOUT: int = 30
     
     # CORS settings
-    CORS_ORIGINS: List[str] = ["*"]
+    CORS_ORIGINS: Union[str, List[str]] = "*"
+    
+    @model_validator(mode='before')
+    @classmethod
+    def parse_cors_origins(cls, values):
+        if isinstance(values, dict) and 'CORS_ORIGINS' in values:
+            cors_origins = values['CORS_ORIGINS']
+            if isinstance(cors_origins, str):
+                if cors_origins == "*":
+                    values['CORS_ORIGINS'] = ["*"]
+                else:
+                    values['CORS_ORIGINS'] = cors_origins.split(",")
+        return values
     
     # Auth service URL
     AUTH_SERVICE_URL: str = "http://auth-service:8001"

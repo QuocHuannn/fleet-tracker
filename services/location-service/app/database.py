@@ -6,15 +6,19 @@ from sqlalchemy.orm import sessionmaker, Session
 from typing import Generator
 import logging
 import os
+import asyncpg
 
 logger = logging.getLogger(__name__)
 
 # Database URL from environment or default
-DATABASE_URL = os.getenv("LOCATION_DB_URL", "postgresql+psycopg2://location_user:location_password@location-db:5432/location_db")
+DATABASE_URL = os.getenv("LOCATION_DB_URL", "postgresql+asyncpg://location_user:location_password@location-db:5432/location_db")
+
+# For now, use sync engine with psycopg2 for compatibility
+SYNC_DATABASE_URL = DATABASE_URL.replace("+asyncpg", "+psycopg2")
 
 # Database engine
 engine = create_engine(
-    DATABASE_URL,
+    SYNC_DATABASE_URL,
     pool_size=int(os.getenv("DB_POOL_SIZE", "10")),
     max_overflow=int(os.getenv("DB_MAX_OVERFLOW", "20")),
     echo=os.getenv("DEBUG", "false").lower() == "true",

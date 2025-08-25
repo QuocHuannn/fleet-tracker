@@ -1,7 +1,8 @@
 # Location Service Configuration
 
 from pydantic_settings import BaseSettings
-from typing import List
+from pydantic import model_validator
+from typing import List, Union
 from functools import lru_cache
 import os
 
@@ -15,7 +16,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "DEBUG"
     
     # Database Configuration (PostgreSQL + PostGIS)
-    DATABASE_URL: str = os.getenv("LOCATION_DB_URL", "postgresql+psycopg2://location_user:location_password@location-db:5432/location_db")
+    DATABASE_URL: str = os.getenv("LOCATION_DB_URL", "postgresql+asyncpg://location_user:location_password@location-db:5432/location_db")
     DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", "10"))
     DB_MAX_OVERFLOW: int = int(os.getenv("DB_MAX_OVERFLOW", "20"))
     
@@ -32,7 +33,16 @@ class Settings(BaseSettings):
     VEHICLE_SERVICE_URL: str = os.getenv("VEHICLE_SERVICE_URL", "http://vehicle-service:8002")
     
     # CORS Configuration
-    CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:8000").split(",")
+    CORS_ORIGINS: Union[str, List[str]] = "http://localhost:3000,http://localhost:8000"
+    
+    @model_validator(mode='before')
+    @classmethod
+    def parse_cors_origins(cls, values):
+        if isinstance(values, dict) and 'CORS_ORIGINS' in values:
+            cors_origins = values['CORS_ORIGINS']
+            if isinstance(cors_origins, str):
+                values['CORS_ORIGINS'] = cors_origins.split(",")
+        return values
     
     # Spatial Configuration
     DEFAULT_SRID: int = 4326  # WGS84

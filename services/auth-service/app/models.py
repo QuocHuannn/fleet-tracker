@@ -18,14 +18,14 @@ class User(Base):
     display_name = Column(String(255))
     role = Column(String(50), nullable=False, default="viewer")
     is_active = Column(Boolean, default=True, nullable=False)
-    metadata = Column(JSONB, default={})
+    user_metadata = Column(JSONB, default={})
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     last_login = Column(DateTime(timezone=True))
     
     # Relationships
     sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
-    permissions = relationship("UserPermission", back_populates="user", cascade="all, delete-orphan")
+    # user_permissions = relationship("UserPermission", back_populates="user", foreign_keys="UserPermission.user_id", cascade="all, delete-orphan")
 
 class Role(Base):
     """Role definition"""
@@ -78,6 +78,6 @@ class UserPermission(Base):
     granted_at = Column(DateTime(timezone=True), server_default=func.now())
     
     # Relationships
-    user = relationship("User", back_populates="permissions", foreign_keys=[user_id])
+    user = relationship("User", foreign_keys=[user_id])
     permission = relationship("Permission")
     granted_by_user = relationship("User", foreign_keys=[granted_by])

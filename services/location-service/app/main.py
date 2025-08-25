@@ -4,7 +4,12 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 import time
 import uuid
+import logging
 from typing import Dict, Any
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 from .database import init_db, close_db, get_db
 from .config import settings

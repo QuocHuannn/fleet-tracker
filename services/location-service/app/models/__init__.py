@@ -1,11 +1,14 @@
-from app.models.location import Location
-from app.models.geofence import Geofence, GeofenceType
-from app.models.exceptions import InvalidCoordinatesError, GeofenceNotFoundError
+from app.models.location_data import Location, LocationData, ProcessedLocation, GeofenceViolation
+# from app.models.geofence import Geofence, GeofenceType
+# from app.models.exceptions import InvalidCoordinatesError, GeofenceNotFoundError
 
 __all__ = [
     "Location",
-    "Geofence",
-    "GeofenceType",
-    "InvalidCoordinatesError",
-    "GeofenceNotFoundError"
+    "LocationData",
+    "ProcessedLocation", 
+    "GeofenceViolation"
+    # "Geofence",
+    # "GeofenceType",
+    # "InvalidCoordinatesError",
+    # "GeofenceNotFoundError"
 ]

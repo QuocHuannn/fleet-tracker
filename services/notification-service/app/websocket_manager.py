@@ -27,15 +27,19 @@ class WebSocketMessage(BaseModel):
         if not data.get('message_id'):
             data['message_id'] = str(uuid.uuid4())
         super().__init__(**data)
+    
+    class Config:
+        arbitrary_types_allowed = True
 
-class ConnectionInfo(BaseModel):
+class ConnectionInfo:
     """WebSocket connection information"""
-    user_id: str
-    connection_id: str
-    websocket: WebSocket
-    subscriptions: Set[str] = set()
-    last_activity: datetime = datetime.utcnow()
-    client_info: Dict[str, Any] = {}
+    def __init__(self, user_id: str, connection_id: str, websocket: WebSocket, client_info: Dict[str, Any] = None):
+        self.user_id = user_id
+        self.connection_id = connection_id
+        self.websocket = websocket
+        self.subscriptions: Set[str] = set()
+        self.last_activity = datetime.utcnow()
+        self.client_info = client_info or {}
 
 class WebSocketManager:
     """Manages WebSocket connections for real-time notifications"""

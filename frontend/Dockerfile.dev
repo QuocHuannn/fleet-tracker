@@ -1,0 +1,25 @@
+# Fleet Tracker Frontend - Development Dockerfile
+# Optimized for fast development
+
+FROM node:18-alpine
+
+LABEL maintainer="Trương Quốc Huân <truonghuan0709@gmail.com>"
+LABEL description="Fleet Tracker Frontend Development"
+
+# Set working directory
+WORKDIR /app
+
+# Install dependencies only when needed
+COPY package*.json ./
+
+# Install dependencies with cache
+RUN npm install --cache /tmp/.npm-cache --prefer-offline
+
+# Copy source code
+COPY . .
+
+# Expose port
+EXPOSE 3000
+
+# Development command with hot reload
+CMD ["npm", "start"]

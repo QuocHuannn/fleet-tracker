@@ -26,7 +26,6 @@
     "@types/react-router-dom": "^5.3.3",
     
     "axios": "^1.6.1",
-    "@types/axios": "^0.14.0",
     
     "mapbox-gl": "^2.15.0",
     "react-map-gl": "^7.1.6",
@@ -50,9 +49,9 @@
     "@testing-library/user-event": "^13.5.0",
     "@types/jest": "^29.5.8",
     
-    "eslint": "^8.53.0",
     "@typescript-eslint/eslint-plugin": "^6.11.0",
     "@typescript-eslint/parser": "^6.11.0",
+    "eslint": "^8.53.0",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     

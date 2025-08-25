@@ -98,30 +98,108 @@ async def login(request: LoginRequest, req: Request, db: Session = Depends(get_d
         logger.error(f"Login error: {str(e)}")
         raise HTTPException(status_code=401, detail="Authentication failed")
 
-@router.post("/validate-token", response_model=TokenValidationResponse)
-async def validate_token(request: TokenValidationRequest, db: Session = Depends(get_db)):
-    """Validate JWT token"""
+@router.post("/dev-login", response_model=LoginResponse)
+async def dev_login(request: LoginRequest, req: Request, db: Session = Depends(get_db)):
+    """Development login endpoint - bypass Firebase for testing"""
     try:
-        # Verify JWT token
-        payload = jwt_handler.verify_token(request.token)
+        # For development, accept any token and create mock user
+        mock_firebase_user = {
+            'uid': 'dev_user_123',
+            'email': 'admin@fleettracker.com',
+            'name': 'Admin User'
+        }
         
-        # Get user from database to ensure still active
-        user = db.query(User).filter(User.id == payload['user_id']).first()
+        # Get or create user in database
+        user = db.query(User).filter(User.firebase_uid == mock_firebase_user['uid']).first()
         
-        if not user or not user.is_active:
-            return TokenValidationResponse(valid=False)
+        if not user:
+            # Create new user
+            user = User(
+                firebase_uid=mock_firebase_user['uid'],
+                email=mock_firebase_user['email'],
+                display_name=mock_firebase_user['name'],
+                role='admin',  # Admin role for development
+                is_active=True
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+            logger.info(f"Created development user: {user.email}")
+        else:
+            # Update user info
+            user.display_name = mock_firebase_user['name']
+            user.last_login = datetime.datetime.utcnow()
+            db.commit()
         
-        return TokenValidationResponse(
-            valid=True,
-            user_id=payload['user_id'],
-            role=payload['role'],
-            email=payload['email'],
-            expires_at=datetime.datetime.fromtimestamp(payload['exp'])
+        # Generate JWT tokens
+        access_token = jwt_handler.create_access_token(user)
+        refresh_token = jwt_handler.create_refresh_token(user)
+        
+        # Store session
+        session = UserSession(
+            user_id=user.id,
+            token_hash=jwt_handler.hash_token(refresh_token),
+            device_info=request.device_info or {},
+            ip_address=req.client.host if req.client else None,
+            expires_at=datetime.datetime.utcnow() + datetime.timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS)
+        )
+        db.add(session)
+        db.commit()
+        
+        return LoginResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            user_id=str(user.id),
+            email=user.email,
+            role=user.role,
+            display_name=user.display_name,
+            expires_at=datetime.datetime.utcnow() + datetime.timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
         )
         
     except Exception as e:
-        logger.error(f"Token validation error: {str(e)}")
-        return TokenValidationResponse(valid=False)
+        logger.error(f"Dev login error: {str(e)}")
+        raise HTTPException(status_code=401, detail="Development authentication failed")
+
+@router.post("/simple-login")
+async def simple_login():
+    """Simple development login - no database required"""
+    try:
+        # Return mock user data
+        return {
+            "access_token": "dev_access_token_123",
+            "refresh_token": "dev_refresh_token_123",
+            "user_id": "dev_user_123",
+            "email": "admin@fleettracker.com",
+            "role": "admin",
+            "display_name": "Admin User",
+            "expires_at": "2025-12-31T23:59:59Z"
+        }
+        
+    except Exception as e:
+        logger.error(f"Simple login error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Simple login failed")
+
+@router.post("/simple-validate")
+async def simple_validate(request: TokenValidationRequest):
+    """Simple token validation for development"""
+    try:
+        # For development, accept any token
+        if request.token:
+            return {
+                "valid": True,
+                "user": {
+                    "id": "dev_user_123",
+                    "email": "admin@fleettracker.com",
+                    "display_name": "Admin User",
+                    "role": "admin"
+                }
+            }
+        else:
+            return {"valid": False, "error": "No token provided"}
+        
+    except Exception as e:
+        logger.error(f"Simple validation error: {str(e)}")
+        return {"valid": False, "error": str(e)}
 
 @router.post("/refresh")
 async def refresh_token():

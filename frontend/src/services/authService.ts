@@ -10,7 +10,13 @@ export interface LoginCredentials {
 export interface User {
   id: string;
   email: string;
+  displayName?: string;
   role: string;
+}
+
+export interface LoginResponse {
+  user: User;
+  token: string;
 }
 
 export interface TokenResponse {
@@ -23,17 +29,38 @@ class AuthService {
   /**
    * Đăng nhập người dùng
    */
-  async login(credentials: LoginCredentials): Promise<User> {
+  async login(credentials: LoginCredentials): Promise<LoginResponse> {
     try {
-      const response = await axios.post(`${API_URL}/api/v1/auth/login`, credentials);
+      // Use simple login for development
+      const response = await axios.post(`${API_URL}/auth/simple-login`);
       
-      // Lưu token vào localStorage
-      localStorage.setItem('token', response.data.access_token);
-      
-      // Lấy thông tin người dùng
-      return this.getCurrentUser();
+      return {
+        user: {
+          id: response.data.user_id,
+          email: response.data.email,
+          displayName: response.data.display_name,
+          role: response.data.role
+        },
+        token: response.data.access_token
+      };
     } catch (error) {
       console.error('Login error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Validate token và lấy thông tin người dùng
+   */
+  async validateToken(token: string): Promise<User> {
+    try {
+      const response = await axios.post(`${API_URL}/auth/simple-validate`, {
+        token: token
+      });
+      
+      return response.data.user;
+    } catch (error) {
+      console.error('Token validation error:', error);
       throw error;
     }
   }
@@ -49,7 +76,7 @@ class AuthService {
         throw new Error('No authentication token found');
       }
       
-      const response = await axios.get(`${API_URL}/api/v1/auth/me`, {
+      const response = await axios.get(`${API_URL}/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -73,7 +100,7 @@ class AuthService {
         throw new Error('No authentication token found');
       }
       
-      const response = await axios.post(`${API_URL}/api/v1/auth/refresh`, {}, {
+      const response = await axios.post(`${API_URL}/auth/refresh`, {}, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -104,4 +131,5 @@ class AuthService {
   }
 }
 
-export default new AuthService();
+export const authService = new AuthService();
+export default authService;

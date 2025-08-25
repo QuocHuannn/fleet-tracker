@@ -1,7 +1,8 @@
 # Auth Service Configuration
 
 from pydantic_settings import BaseSettings
-from typing import List
+from pydantic import model_validator
+from typing import List, Union
 from functools import lru_cache
 import os
 
@@ -33,7 +34,16 @@ class Settings(BaseSettings):
     FIREBASE_SERVICE_ACCOUNT_KEY: str = os.getenv("FIREBASE_SERVICE_ACCOUNT_KEY", "")
     
     # CORS Configuration  
-    CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:8000").split(",")
+    CORS_ORIGINS: Union[str, List[str]] = "http://localhost:3000,http://localhost:8000"
+    
+    @model_validator(mode='before')
+    @classmethod
+    def parse_cors_origins(cls, values):
+        if isinstance(values, dict) and 'CORS_ORIGINS' in values:
+            cors_origins = values['CORS_ORIGINS']
+            if isinstance(cors_origins, str):
+                values['CORS_ORIGINS'] = cors_origins.split(",")
+        return values
     
     # Security
     PASSWORD_MIN_LENGTH: int = int(os.getenv("PASSWORD_MIN_LENGTH", "8"))
