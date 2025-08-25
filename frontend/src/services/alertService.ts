@@ -1,8 +1,8 @@
 // Alert Service
 // Manages alert data and API communication
 
-import { Alert, AlertRule, AlertStats, AlertFilter } from '../types/alert';
-import { config } from '../config/environment';
+import { Alert, AlertRule, AlertStats, AlertFilter } from '../types/alert.ts';
+import { config } from '../config/environment.ts';
 
 class AlertService {
   private baseURL = config.API_URL;
@@ -385,4 +385,4 @@ class AlertService {
 }
 
 export const alertService = new AlertService();
-export * from '../types/alert';
+export * from '../types/alert.ts';

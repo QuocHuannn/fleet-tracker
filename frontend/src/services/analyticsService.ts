@@ -1,4 +1,4 @@
-import { config } from '../config/environment';
+import { config } from '../config/environment.ts';
 
 export interface AnalyticsData {
   fleet_overview: {

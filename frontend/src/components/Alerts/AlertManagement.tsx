@@ -7,8 +7,8 @@ import {
   Paper
 } from '@mui/material';
 
-import AlertDashboard from './AlertDashboard';
-import AlertRules from './AlertRules';
+import AlertDashboard from './AlertDashboard.tsx';
+import AlertRules from './AlertRules.tsx';
 
 interface TabPanelProps {
   children?: React.ReactNode;

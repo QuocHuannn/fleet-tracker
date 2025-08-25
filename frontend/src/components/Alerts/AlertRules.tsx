@@ -36,7 +36,7 @@ import {
   Build as MaintenanceIcon
 } from '@mui/icons-material';
 
-import { AlertRule, alertService } from '../../services/alertService';
+import { AlertRule, alertService } from '../../services/alertService.ts';
 
 const AlertRules: React.FC = () => {
   const [rules, setRules] = useState<AlertRule[]>([]);

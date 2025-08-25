@@ -17,21 +17,21 @@ import {
 } from '@mui/icons-material';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import config from '../../config/environment';
-import { websocketService, VehicleLocation, Alert } from '../../services/websocketService';
+import config from '../../config/environment.ts';
+import { websocketService, VehicleLocation, Alert } from '../../services/websocketService.ts';
 
-import { Vehicle } from '../../services/vehicleService';
+import { Vehicle } from '../../services/vehicleService.ts';
 
 interface LiveMapProps {
   vehicles?: Vehicle[];
   loading?: boolean;
 }
 
-const LiveMap: React.FC<LiveMapProps> = ({ vehicles = [], loading = false }) => {
+const LiveMap: React.FC<LiveMapProps> = ({ vehicles: initialVehicles = [], loading = false }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<{ [key: string]: mapboxgl.Marker }>({});
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [wsConnected, setWsConnected] = useState(false);
 

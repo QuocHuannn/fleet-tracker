@@ -43,7 +43,7 @@ import {
 // import { formatDistanceToNow } from 'date-fns';
 // import { vi } from 'date-fns/locale';
 
-import { Alert, AlertStats, AlertFilter, alertService } from '../../services/alertService';
+import { Alert, AlertStats, AlertFilter, alertService } from '../../services/alertService.ts';
 
 const AlertDashboard: React.FC = () => {
   const [alerts, setAlerts] = useState<Alert[]>([]);

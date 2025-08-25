@@ -14,7 +14,7 @@ import {
   Alert,
   CircularProgress
 } from '@mui/material';
-import { vehicleService, Vehicle, CreateVehicleRequest, UpdateVehicleRequest } from '../../services/vehicleService';
+import { vehicleService, Vehicle, CreateVehicleRequest, UpdateVehicleRequest } from '../../services/vehicleService.ts';
 
 interface VehicleFormProps {
   open: boolean;

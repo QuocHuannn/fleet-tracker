@@ -9,15 +9,15 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, Box } from '@mui/material';
 
 // Components
-import Header from './components/Layout/Header';
-import LoginForm from './components/Auth/LoginForm';
-import Dashboard from './components/Dashboard/Dashboard';
-import VehicleList from './components/Vehicles/VehicleList';
-import LiveMap from './components/Map/LiveMap';
-import AlertManagement from './components/Alerts/AlertManagement';
+import Header from './components/Layout/Header.tsx';
+import LoginForm from './components/Auth/LoginForm.tsx';
+import Dashboard from './components/Dashboard/Dashboard.tsx';
+import VehicleList from './components/Vehicles/VehicleList.tsx';
+import LiveMap from './components/Map/LiveMap.tsx';
+import AlertManagement from './components/Alerts/AlertManagement.tsx';
 
 // Contexts
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
 
 const theme = createTheme({
   palette: {
@@ -31,7 +31,7 @@ const theme = createTheme({
 });
 
 function AppContent() {
-  const { user, loading, error } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (

@@ -9,7 +9,7 @@ import {
   CircularProgress 
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext.tsx';
 
 const LoginForm: React.FC = () => {
   const { login, loading, error } = useAuth();

@@ -29,11 +29,11 @@ import {
   ArrowForward
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import VehicleStatusMonitoring from '../Vehicles/VehicleStatusMonitoring';
-import AnalyticsDashboard from '../Analytics/AnalyticsDashboard';
+import VehicleStatusMonitoring from '../Vehicles/VehicleStatusMonitoring.tsx';
+import AnalyticsDashboard from '../Analytics/AnalyticsDashboard.tsx';
 
-import { Vehicle } from '../../services/vehicleService';
-import { Alert, alertService } from '../../services/alertService';
+import { Vehicle } from '../../services/vehicleService.ts';
+import { Alert, alertService } from '../../services/alertService.ts';
 
 const Dashboard: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);

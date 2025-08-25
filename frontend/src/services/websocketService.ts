@@ -1,7 +1,7 @@
 // WebSocket Service for Real-time Communications
 // Handles WebSocket connections for live updates
 
-import config from '../config/environment';
+import config from '../config/environment.ts';
 
 export interface WebSocketMessage {
   type: string;

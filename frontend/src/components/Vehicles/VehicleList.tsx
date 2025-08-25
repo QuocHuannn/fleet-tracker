@@ -26,10 +26,10 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import SettingsIcon from '@mui/icons-material/Settings';
-import VehicleForm from './VehicleForm';
-import VehicleDetails from './VehicleDetails';
-import DeviceManagement from './DeviceManagement';
-import { Vehicle } from '../../services/vehicleService';
+import VehicleForm from './VehicleForm.tsx';
+import VehicleDetails from './VehicleDetails.tsx';
+import DeviceManagement from './DeviceManagement.tsx';
+import { Vehicle } from '../../services/vehicleService.ts';
 
 interface VehicleListProps {
   onEdit?: (vehicle: Vehicle) => void;

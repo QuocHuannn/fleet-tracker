@@ -43,7 +43,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-import { analyticsService, AnalyticsData, TimeSeriesData, DateRange } from '../../services/analyticsService';
+import { analyticsService, AnalyticsData, TimeSeriesData, DateRange } from '../../services/analyticsService.ts';
 
 const AnalyticsDashboard: React.FC = () => {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
