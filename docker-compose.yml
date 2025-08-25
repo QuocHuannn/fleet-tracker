@@ -6,14 +6,7 @@ services:
     build: ./services/api-gateway
     ports:
       - "8000:8000"
-    environment:
-      - AUTH_SERVICE_URL=http://auth-service:8001
-      - VEHICLE_SERVICE_URL=http://vehicle-service:8002
-      - LOCATION_SERVICE_URL=http://location-service:8003
-      - NOTIFICATION_SERVICE_URL=http://notification-service:8004
-      - REDIS_URL=redis://redis:6379/0
-      - JWT_SECRET_KEY=dev_jwt_secret_key
-      - LOG_LEVEL=DEBUG
+    env_file: .env
     volumes:
       - ./services/api-gateway:/app
     depends_on:
@@ -21,23 +14,13 @@ services:
       - vehicle-service
       - location-service
       - notification-service
-      - redis
 
   # Auth Service
   auth-service:
     build: ./services/auth-service
     ports:
       - "8001:8001"
-    env_file:
-      - .env
-    environment:
-      - AUTH_DB_URL=${AUTH_DB_URL:-postgresql+psycopg2://auth_user:auth_dev_pass@auth-db:5432/auth_db}
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379/1}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-fleet_tracker_dev_jwt_secret_2024}
-      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-60}
-      - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
-      - ENVIRONMENT=${ENVIRONMENT:-development}
-      - DEBUG=${DEBUG:-true}
+    env_file: .env
     volumes:
       - ./services/auth-service:/app
     depends_on:
@@ -49,11 +32,7 @@ services:
     build: ./services/vehicle-service
     ports:
       - "8002:8002"
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://vehicle_user:vehicle_password@vehicle-db:5432/vehicle_db
-      - AUTH_SERVICE_URL=http://auth-service:8001
-      - JWT_SECRET_KEY=dev_jwt_secret_key
-      - LOG_LEVEL=DEBUG
+    env_file: .env
     volumes:
       - ./services/vehicle-service:/app
     depends_on:
@@ -64,14 +43,7 @@ services:
     build: ./services/location-service
     ports:
       - "8003:8003"
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://location_user:location_password@location-db:5432/location_db
-      - MQTT_BROKER_URL=mqtt://mosquitto:1883
-      - MQTT_USERNAME=mqtt_user
-      - MQTT_PASSWORD=mqtt_password
-      - REDIS_URL=redis://redis:6379/2
-      - VEHICLE_SERVICE_URL=http://vehicle-service:8002
-      - LOG_LEVEL=DEBUG
+    env_file: .env
     volumes:
       - ./services/location-service:/app
     depends_on:
@@ -84,10 +56,7 @@ services:
     build: ./services/notification-service
     ports:
       - "8004:8004"
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://notification_user:notification_password@notification-db:5432/notification_db
-      - REDIS_URL=redis://redis:6379/3
-      - LOG_LEVEL=DEBUG
+    env_file: .env
     volumes:
       - ./services/notification-service:/app
     depends_on:
@@ -96,23 +65,23 @@ services:
 
   # Frontend
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
     ports:
-      - "3000:80"
+      - "3000:3000"
+    env_file: .env
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    environment:
-      - REACT_APP_API_URL=http://localhost:8000
-      - REACT_APP_WS_URL=ws://localhost:8004/ws
 
   # Databases
   auth-db:
     image: postgres:15
     environment:
-      - POSTGRES_DB=auth_db
-      - POSTGRES_USER=auth_user
-      - POSTGRES_PASSWORD=auth_password
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD:-auth_dev_pass_2024}
     volumes:
       - auth_db_data:/var/lib/postgresql/data
       - ./infrastructure/databases/init/auth:/docker-entrypoint-initdb.d
@@ -122,9 +91,9 @@ services:
   vehicle-db:
     image: postgres:15
     environment:
-      - POSTGRES_DB=vehicle_db
-      - POSTGRES_USER=vehicle_user
-      - POSTGRES_PASSWORD=vehicle_password
+      POSTGRES_DB: vehicle_db
+      POSTGRES_USER: vehicle_user
+      POSTGRES_PASSWORD: ${VEHICLE_DB_PASSWORD:-vehicle_dev_pass_2024}
     volumes:
       - vehicle_db_data:/var/lib/postgresql/data
       - ./infrastructure/databases/init/vehicle:/docker-entrypoint-initdb.d
@@ -134,9 +103,9 @@ services:
   location-db:
     image: postgis/postgis:15-master
     environment:
-      - POSTGRES_DB=location_db
-      - POSTGRES_USER=location_user
-      - POSTGRES_PASSWORD=location_password
+      POSTGRES_DB: location_db
+      POSTGRES_USER: location_user
+      POSTGRES_PASSWORD: ${LOCATION_DB_PASSWORD:-location_dev_pass_2024}
     volumes:
       - location_db_data:/var/lib/postgresql/data
       - ./infrastructure/databases/init/location:/docker-entrypoint-initdb.d
@@ -146,9 +115,9 @@ services:
   notification-db:
     image: postgres:15
     environment:
-      - POSTGRES_DB=notification_db
-      - POSTGRES_USER=notification_user
-      - POSTGRES_PASSWORD=notification_password
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: notification_user
+      POSTGRES_PASSWORD: ${NOTIFICATION_DB_PASSWORD:-notification_dev_pass_2024}
     volumes:
       - notification_db_data:/var/lib/postgresql/data
       - ./infrastructure/databases/init/notification:/docker-entrypoint-initdb.d

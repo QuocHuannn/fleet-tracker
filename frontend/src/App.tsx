@@ -14,6 +14,7 @@ import LoginForm from './components/Auth/LoginForm';
 import Dashboard from './components/Dashboard/Dashboard';
 import VehicleList from './components/Vehicles/VehicleList';
 import LiveMap from './components/Map/LiveMap';
+import AlertManagement from './components/Alerts/AlertManagement';
 
 // Contexts
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -85,6 +86,18 @@ function AppContent() {
                 user ? (
                   <Box sx={{ p: 3 }}>
                     <LiveMap />
+                  </Box>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/alerts" 
+              element={
+                user ? (
+                  <Box sx={{ p: 3 }}>
+                    <AlertManagement />
                   </Box>
                 ) : (
                   <Navigate to="/login" replace />

@@ -9,6 +9,7 @@ import logging
 from .config import settings
 from .database import init_db, close_db
 from .routes import auth, users, health
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -24,6 +25,9 @@ app = FastAPI(
         "email": "truonghuan0709@gmail.com"
     }
 )
+
+# Instrument the app for Prometheus
+Instrumentator().instrument(app).expose(app)
 
 # CORS Configuration
 app.add_middleware(

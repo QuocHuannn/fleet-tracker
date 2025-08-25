@@ -4,6 +4,7 @@
 # PROJECT PLANNING & DOCUMENTATION (Private)
 # =============================================
 .cursor-plan/
+
 docs/internal/
 planning/
 *.planning

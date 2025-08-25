@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: fleet-tracker-production
+  labels:
+    app: notification-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "8004"
+    spec:
+      containers:
+        - name: notification-service
+          image: ghcr.io/your-github-username/fleet-tracker-notification-service:latest # <-- Replace with your GHCR path
+          ports:
+            - containerPort: 8004
+          env:
+            - name: NOTIFICATION_DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: fleet-tracker-secrets
+                  key: NOTIFICATION_DB_URL
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fleet-tracker-secrets
+                  key: SMTP_PASSWORD
+            - name: SMS_PROVIDER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fleet-tracker-secrets
+                  key: SMS_PROVIDER_API_KEY
+            # Non-sensitive config can be moved to a ConfigMap
+            - name: REDIS_URL
+              value: "redis://redis-service.fleet-tracker-production.svc.cluster.local:6379"
+

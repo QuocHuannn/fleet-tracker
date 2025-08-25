@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# List of resources to apply
+resources:
+    - namespace.yml
+  - auth-service-deployment.yml
+  - auth-service-service.yml
+  - vehicle-service-deployment.yml
+  - vehicle-service-service.yml
+  - location-service-deployment.yml
+  - location-service-service.yml
+  - notification-service-deployment.yml
+  - notification-service-service.yml
+  - api-gateway-deployment.yml
+  - api-gateway-service.yml
+  - frontend-deployment.yml
+  - frontend-service.yml
+  - redis-deployment.yml
+  - redis-service.yml
+  - mosquitto-configmap.yml
+  - mosquitto-deployment.yml
+  - mosquitto-service.yml
+  - ingress.yml
+

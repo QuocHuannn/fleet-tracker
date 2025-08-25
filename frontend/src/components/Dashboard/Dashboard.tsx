@@ -13,97 +13,96 @@ import {
   Chip,
   CircularProgress,
   Tabs,
-  Tab
+  Tab,
+  Button,
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import {
   DirectionsCar,
   LocationOn,
   Warning,
   Speed,
-  Timeline
+  Timeline,
+  Notifications,
+  Analytics,
+  ArrowForward
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import VehicleStatusMonitoring from '../Vehicles/VehicleStatusMonitoring';
+import AnalyticsDashboard from '../Analytics/AnalyticsDashboard';
 
 import { Vehicle } from '../../services/vehicleService';
-
-interface Alert {
-  id: string;
-  type: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  message: string;
-  timestamp: string;
-  vehicle_id: string;
-}
+import { Alert, alertService } from '../../services/alertService';
 
 const Dashboard: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // TODO: Fetch data from API
-    const fetchDashboardData = async () => {
-      try {
-        // Mock data for now
-        setVehicles([
-          {
-            id: '1',
-            license_plate: 'ABC-123',
-            make: 'Toyota',
-            model: 'Hilux',
-            year: 2022,
-            status: 'active',
-            device_id: 'GPS001',
-            last_location: {
-              latitude: 10.762622,
-              longitude: 106.660172,
-              timestamp: new Date().toISOString()
-            },
-            current_speed: 45,
-            total_distance: 15000,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: '2',
-            license_plate: 'XYZ-789',
-            make: 'Ford',
-            model: 'Ranger',
-            year: 2021,
-            status: 'active',
-            device_id: 'GPS002',
-            last_location: {
-              latitude: 10.782622,
-              longitude: 106.680172,
-              timestamp: new Date().toISOString()
-            },
-            current_speed: 30,
-            total_distance: 12000,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        ]);
-
-        setAlerts([
-          {
-            id: '1',
-            type: 'speed_violation',
-            severity: 'medium',
-            message: 'Vehicle ABC-123 exceeded speed limit',
-            timestamp: new Date().toISOString(),
-            vehicle_id: '1'
-          }
-        ]);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboardData();
   }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch alerts
+      const alertsResponse = await alertService.getAlerts(
+        { acknowledged: false, resolved: false }, // Only show unresolved alerts
+        1,
+        5 // Limit to 5 recent alerts
+      );
+      setAlerts(alertsResponse.alerts);
+
+      // Mock vehicles data - replace with actual API call
+      setVehicles([
+        {
+          id: '1',
+          license_plate: 'ABC-123',
+          make: 'Toyota',
+          model: 'Hilux',
+          year: 2022,
+          status: 'active',
+          device_id: 'GPS001',
+          last_location: {
+            latitude: 10.762622,
+            longitude: 106.660172,
+            timestamp: new Date().toISOString()
+          },
+          current_speed: 45,
+          total_distance: 15000,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: '2',
+          license_plate: 'XYZ-789',
+          make: 'Ford',
+          model: 'Ranger',
+          year: 2021,
+          status: 'active',
+          device_id: 'GPS002',
+          last_location: {
+            latitude: 10.782622,
+            longitude: 106.680172,
+            timestamp: new Date().toISOString()
+          },
+          current_speed: 38,
+          total_distance: 12000,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ]);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -120,6 +119,21 @@ const Dashboard: React.FC = () => {
     setActiveTab(newValue);
   };
 
+  const getSeverityColor = (severity: Alert['severity']) => {
+    switch (severity) {
+      case 'critical':
+        return 'error';
+      case 'high':
+        return 'warning';
+      case 'medium':
+        return 'info';
+      case 'low':
+        return 'success';
+      default:
+        return 'default';
+    }
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
@@ -129,8 +143,9 @@ const Dashboard: React.FC = () => {
       {/* Tabs */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={activeTab} onChange={handleTabChange}>
-          <Tab label="Overview" />
-          <Tab label="Vehicle Status" />
+          <Tab label="Tổng quan" />
+          <Tab label="Trạng thái xe" />
+          <Tab label="Analytics" />
         </Tabs>
       </Box>
 
@@ -146,7 +161,7 @@ const Dashboard: React.FC = () => {
                     <DirectionsCar sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
                     <Box>
                       <Typography variant="h4">{vehicles.length}</Typography>
-                      <Typography color="textSecondary">Total Vehicles</Typography>
+                      <Typography color="textSecondary">Tổng số xe</Typography>
                     </Box>
                   </Box>
                 </CardContent>
@@ -160,7 +175,7 @@ const Dashboard: React.FC = () => {
                     <LocationOn sx={{ fontSize: 40, color: 'success.main', mr: 2 }} />
                     <Box>
                       <Typography variant="h4">{activeVehicles}</Typography>
-                      <Typography color="textSecondary">Active Vehicles</Typography>
+                      <Typography color="textSecondary">Xe hoạt động</Typography>
                     </Box>
                   </Box>
                 </CardContent>
@@ -174,7 +189,7 @@ const Dashboard: React.FC = () => {
                     <Warning sx={{ fontSize: 40, color: 'error.main', mr: 2 }} />
                     <Box>
                       <Typography variant="h4">{alerts.length}</Typography>
-                      <Typography color="textSecondary">Active Alerts</Typography>
+                      <Typography color="textSecondary">Cảnh báo</Typography>
                     </Box>
                   </Box>
                 </CardContent>
@@ -188,7 +203,7 @@ const Dashboard: React.FC = () => {
                     <Speed sx={{ fontSize: 40, color: 'warning.main', mr: 2 }} />
                     <Box>
                       <Typography variant="h4">{criticalAlerts}</Typography>
-                      <Typography color="textSecondary">Critical Alerts</Typography>
+                      <Typography color="textSecondary">Cảnh báo nghiêm trọng</Typography>
                     </Box>
                   </Box>
                 </CardContent>
@@ -201,26 +216,42 @@ const Dashboard: React.FC = () => {
             {/* Recent Alerts */}
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                  Recent Alerts
-                </Typography>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                  <Typography variant="h6">
+                    <Notifications sx={{ mr: 1, verticalAlign: 'middle' }} />
+                    Cảnh báo gần đây
+                  </Typography>
+                  <Button
+                    size="small"
+                    endIcon={<ArrowForward />}
+                    onClick={() => navigate('/alerts')}
+                  >
+                    Xem tất cả
+                  </Button>
+                </Box>
                 <List>
-                  {alerts.slice(0, 5).map((alert) => (
-                    <ListItem key={alert.id} divider>
-                      <ListItemIcon>
-                        <Warning color={alert.severity === 'critical' ? 'error' : 'warning'} />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={alert.message}
-                        secondary={new Date(alert.timestamp).toLocaleString()}
-                      />
-                      <Chip
-                        label={alert.severity}
-                        color={alert.severity === 'critical' ? 'error' : 'warning'}
-                        size="small"
-                      />
-                    </ListItem>
-                  ))}
+                  {alerts.length === 0 ? (
+                    <Typography color="textSecondary" textAlign="center" py={2}>
+                      Không có cảnh báo nào
+                    </Typography>
+                  ) : (
+                    alerts.slice(0, 5).map((alert) => (
+                      <ListItem key={alert.id} divider>
+                        <ListItemIcon>
+                          <Warning color={getSeverityColor(alert.severity) as any} />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={alert.title}
+                          secondary={alert.message}
+                        />
+                        <Chip
+                          label={alert.severity}
+                          color={getSeverityColor(alert.severity) as any}
+                          size="small"
+                        />
+                      </ListItem>
+                    ))
+                  )}
                 </List>
               </Paper>
             </Grid>
@@ -228,9 +259,19 @@ const Dashboard: React.FC = () => {
             {/* Active Vehicles */}
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                  Active Vehicles
-                </Typography>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                  <Typography variant="h6">
+                    <DirectionsCar sx={{ mr: 1, verticalAlign: 'middle' }} />
+                    Xe đang hoạt động
+                  </Typography>
+                  <Button
+                    size="small"
+                    endIcon={<ArrowForward />}
+                    onClick={() => navigate('/vehicles')}
+                  >
+                    Quản lý xe
+                  </Button>
+                </Box>
                 <List>
                   {vehicles.filter(v => v.status === 'active').map((vehicle) => (
                     <ListItem key={vehicle.id} divider>
@@ -239,9 +280,9 @@ const Dashboard: React.FC = () => {
                       </ListItemIcon>
                       <ListItemText
                         primary={vehicle.license_plate}
-                        secondary={`Speed: ${vehicle.current_speed || 0} km/h`}
+                        secondary={`Tốc độ: ${vehicle.current_speed || 0} km/h | ${vehicle.make} ${vehicle.model}`}
                       />
-                      <Chip label="Active" color="success" size="small" />
+                      <Chip label="Hoạt động" color="success" size="small" />
                     </ListItem>
                   ))}
                 </List>
@@ -255,12 +296,12 @@ const Dashboard: React.FC = () => {
         <VehicleStatusMonitoring
           vehicles={vehicles}
           loading={loading}
-          onRefresh={() => {
-            setLoading(true);
-            // TODO: Implement refresh logic
-            setTimeout(() => setLoading(false), 1000);
-          }}
+          onRefresh={fetchDashboardData}
         />
+      )}
+
+      {activeTab === 2 && (
+        <AnalyticsDashboard />
       )}
     </Box>
   );

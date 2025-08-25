@@ -32,6 +32,9 @@ const Header: React.FC = () => {
               <Button color="inherit" onClick={() => navigate('/map')}>
                 Live Map
               </Button>
+              <Button color="inherit" onClick={() => navigate('/alerts')}>
+                Alerts
+              </Button>
               <Button color="inherit" onClick={logout}>
                 Logout
               </Button>

@@ -10,6 +10,7 @@ from app.database import init_db, close_db, get_db
 from app.config import settings
 from app.routes import vehicle_router, device_router
 from app.models import VehicleNotFoundError, DuplicateLicensePlateError
+from prometheus_fastapi_instrumentator import Instrumentator
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -26,6 +27,9 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan
 )
+
+# Instrument the app for Prometheus
+Instrumentator().instrument(app).expose(app)
 
 # CORS middleware
 app.add_middleware(

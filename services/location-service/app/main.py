@@ -15,13 +15,14 @@ from .database import init_db, close_db, get_db
 from .config import settings
 from .routes import location_router, geofence_router, health
 from .mqtt_handler import mqtt_handler
+from prometheus_fastapi_instrumentator import Instrumentator
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     logger.info("🌍 Location Service starting up...")
     await init_db()
-    
+
     # Connect to MQTT broker
     try:
         await mqtt_handler.connect()
@@ -29,10 +30,10 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"❌ MQTT connection failed: {str(e)}")
         # Continue without MQTT for development
-    
+
     logger.info("✅ Location Service ready")
     yield
-    
+
     # Shutdown
     logger.info("🔄 Location Service shutting down...")
     await mqtt_handler.disconnect()
@@ -46,6 +47,9 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan
 )
+
+# Instrument the app for Prometheus
+Instrumentator().instrument(app).expose(app)
 
 # CORS middleware
 app.add_middleware(

@@ -1,53 +1,53 @@
 # Notification Service Configuration
 
 from pydantic_settings import BaseSettings
-from pydantic import field_validator
+from pydantic import model_validator
 from typing import List, Union
 from functools import lru_cache
-import os
 
 class Settings(BaseSettings):
     """Notification Service settings"""
-    
+
     # Application Settings
     APP_NAME: str = "Fleet Tracker Notification Service"
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
     LOG_LEVEL: str = "DEBUG"
-    
+
     # Database Configuration
-    DATABASE_URL: str = os.getenv("NOTIFICATION_DB_URL", "postgresql+psycopg2://notification_user:notification_password@notification-db:5432/notification_db")
-    DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", "10"))
-    DB_MAX_OVERFLOW: int = int(os.getenv("DB_MAX_OVERFLOW", "20"))
-    
+    NOTIFICATION_DB_URL: str
+    DB_POOL_SIZE: int = 10
+    DB_MAX_OVERFLOW: int = 20
+
     # Redis Configuration
-    REDIS_URL: str = os.getenv("REDIS_URL", "redis://redis:6379")
-    
+    REDIS_URL: str
+
     # WebSocket Configuration
     WS_MAX_CONNECTIONS: int = 1000
     WS_HEARTBEAT_INTERVAL: int = 30
-    
-    # Notification Settings
-    MAX_NOTIFICATIONS_PER_USER: int = 100
-    NOTIFICATION_BATCH_SIZE: int = 50
-    
-    # Email Configuration (for future use)
-    SMTP_HOST: str = os.getenv("SMTP_HOST", "")
-    SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
-    SMTP_USERNAME: str = os.getenv("SMTP_USERNAME", "")
-    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
-    
-    # SMS Configuration (for future use)  
-    SMS_PROVIDER_API_KEY: str = os.getenv("SMS_PROVIDER_API_KEY", "")
-    
+
+    # Email Configuration (Optional)
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_EMAIL: str = "dev@fleet-tracker.local"
+
+    # SMS Configuration (Optional)
+    SMS_PROVIDER_API_KEY: str = ""
+
     # CORS Configuration
-    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:8000"
-    
-    @property
-    def cors_origins_list(self) -> List[str]:
-        """Convert CORS_ORIGINS string to list"""
-        return self.CORS_ORIGINS.split(",")
-    
+    CORS_ORIGINS: Union[str, List[str]] = "http://localhost:3000"
+
+    @model_validator(mode='before')
+    @classmethod
+    def parse_cors_origins(cls, values):
+        if isinstance(values, dict) and 'CORS_ORIGINS' in values:
+            cors_origins = values.get('CORS_ORIGINS')
+            if isinstance(cors_origins, str):
+                values['CORS_ORIGINS'] = [origin.strip() for origin in cors_origins.split(",")]
+        return values
+
     class Config:
         env_file = ".env"
         case_sensitive = True

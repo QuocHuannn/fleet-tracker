@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vehicle-service
+  namespace: fleet-tracker-production
+  labels:
+    app: vehicle-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vehicle-service
+  template:
+    metadata:
+      labels:
+        app: vehicle-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "8002"
+    spec:
+      containers:
+        - name: vehicle-service
+          image: ghcr.io/your-github-username/fleet-tracker-vehicle-service:latest # <-- Replace with your GHCR path
+          ports:
+            - containerPort: 8002
+          env:
+            - name: VEHICLE_DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: fleet-tracker-secrets
+                  key: VEHICLE_DB_URL
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fleet-tracker-secrets
+                  key: JWT_SECRET_KEY
+            # Non-sensitive config can be moved to a ConfigMap
+            - name: AUTH_SERVICE_URL
+              value: "http://auth-service.fleet-tracker-production.svc.cluster.local:8001"
+

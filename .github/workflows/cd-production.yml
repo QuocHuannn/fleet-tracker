@@ -1,0 +1,43 @@
+name: CD - Deploy to Production
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+jobs:
+  deploy-production:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Kubernetes context
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG_DATA_PRODUCTION }}
+
+      - name: Install kustomize
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
+          sudo mv kustomize /usr/local/bin/
+
+      - name: Update Kubernetes image tags
+        run: |
+          TAG=${{ github.ref_name }}
+          cd k8s/production
+          kustomize edit set image ghcr.io/your-github-username/fleet-tracker-api-gateway=ghcr.io/${{ github.repository_owner }}/fleet-tracker-api-gateway:$TAG
+          kustomize edit set image ghcr.io/your-github-username/fleet-tracker-auth-service=ghcr.io/${{ github.repository_owner }}/fleet-tracker-auth-service:$TAG
+          kustomize edit set image ghcr.io/your-github-username/fleet-tracker-location-service=ghcr.io/${{ github.repository_owner }}/fleet-tracker-location-service:$TAG
+          kustomize edit set image ghcr.io/your-github-username/fleet-tracker-notification-service=ghcr.io/${{ github.repository_owner }}/fleet-tracker-notification-service:$TAG
+          kustomize edit set image ghcr.io/your-github-username/fleet-tracker-vehicle-service=ghcr.io/${{ github.repository_owner }}/fleet-tracker-vehicle-service:$TAG
+          kustomize edit set image ghcr.io/your-github-username/fleet-tracker-frontend=ghcr.io/${{ github.repository_owner }}/fleet-tracker-frontend:$TAG
+
+      - name: Deploy to Production
+        run: |
+          echo "Deploying to production environment..."
+          kubectl apply -k k8s/production
+

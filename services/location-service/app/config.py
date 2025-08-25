@@ -4,56 +4,45 @@ from pydantic_settings import BaseSettings
 from pydantic import model_validator
 from typing import List, Union
 from functools import lru_cache
-import os
 
 class Settings(BaseSettings):
     """Location Service settings"""
-    
+
     # Application Settings
     APP_NAME: str = "Fleet Tracker Location Service"
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
     LOG_LEVEL: str = "DEBUG"
-    
+
     # Database Configuration (PostgreSQL + PostGIS)
-    DATABASE_URL: str = os.getenv("LOCATION_DB_URL", "postgresql+asyncpg://location_user:location_password@location-db:5432/location_db")
-    DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", "10"))
-    DB_MAX_OVERFLOW: int = int(os.getenv("DB_MAX_OVERFLOW", "20"))
-    
+    LOCATION_DB_URL: str
+    DB_POOL_SIZE: int = 10
+    DB_MAX_OVERFLOW: int = 20
+
     # Redis Configuration
-    REDIS_URL: str = os.getenv("REDIS_URL", "redis://redis:6379")
-    
+    REDIS_URL: str
+
     # MQTT Configuration
-    MQTT_BROKER_URL: str = os.getenv("MQTT_BROKER_URL", "mqtt://mosquitto:1883")
-    MQTT_USERNAME: str = os.getenv("MQTT_USERNAME", "mqtt_user")
-    MQTT_PASSWORD: str = os.getenv("MQTT_PASSWORD", "mqtt_password")
+    MQTT_BROKER_URL: str
+    MQTT_USERNAME: str
+    MQTT_PASSWORD: str
     MQTT_CLIENT_ID: str = "location-service"
-    
-    # Vehicle Service URL (for validation)
-    VEHICLE_SERVICE_URL: str = os.getenv("VEHICLE_SERVICE_URL", "http://vehicle-service:8002")
-    
+
+    # Service URLs
+    VEHICLE_SERVICE_URL: str
+
     # CORS Configuration
-    CORS_ORIGINS: Union[str, List[str]] = "http://localhost:3000,http://localhost:8000"
-    
+    CORS_ORIGINS: Union[str, List[str]] = "http://localhost:3000"
+
     @model_validator(mode='before')
     @classmethod
     def parse_cors_origins(cls, values):
         if isinstance(values, dict) and 'CORS_ORIGINS' in values:
-            cors_origins = values['CORS_ORIGINS']
+            cors_origins = values.get('CORS_ORIGINS')
             if isinstance(cors_origins, str):
-                values['CORS_ORIGINS'] = cors_origins.split(",")
+                values['CORS_ORIGINS'] = [origin.strip() for origin in cors_origins.split(",")]
         return values
-    
-    # Spatial Configuration
-    DEFAULT_SRID: int = 4326  # WGS84
-    DEFAULT_BUFFER_DISTANCE: float = 100.0  # meters
-    MAX_LOCATION_AGE_MINUTES: int = 30
-    
-    # Trip Detection Settings
-    MIN_TRIP_DISTANCE_METERS: float = 500.0
-    MIN_TRIP_DURATION_MINUTES: int = 5
-    IDLE_TIMEOUT_MINUTES: int = 10
-    
+
     class Config:
         env_file = ".env"
         case_sensitive = True

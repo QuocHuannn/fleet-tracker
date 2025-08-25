@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: location-service
+  namespace: fleet-tracker-production
+  labels:
+    app: location-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: location-service
+  template:
+    metadata:
+      labels:
+        app: location-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "8003"
+    spec:
+      containers:
+        - name: location-service
+          image: ghcr.io/your-github-username/fleet-tracker-location-service:latest # <-- Replace with your GHCR path
+          ports:
+            - containerPort: 8003
+          env:
+            - name: LOCATION_DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: fleet-tracker-secrets
+                  key: LOCATION_DB_URL
+            - name: MQTT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fleet-tracker-secrets
+                  key: MQTT_PASSWORD
+            # Non-sensitive config can be moved to a ConfigMap
+            - name: MQTT_BROKER_URL
+              value: "mqtt://mosquitto-service.fleet-tracker-production.svc.cluster.local:1883"
+            - name: REDIS_URL
+              value: "redis://redis-service.fleet-tracker-production.svc.cluster.local:6379"
+            - name: VEHICLE_SERVICE_URL
+              value: "http://vehicle-service.fleet-tracker-production.svc.cluster.local:8002"
+

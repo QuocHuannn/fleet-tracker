@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: fleet-tracker-staging
+  labels:
+    app: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "8000"
+    spec:
+      containers:
+        - name: api-gateway
+          image: ghcr.io/your-github-username/fleet-tracker-api-gateway:latest # <-- Replace with your GHCR path
+          ports:
+            - containerPort: 8000
+          env:
+            - name: AUTH_SERVICE_URL
+              value: "http://auth-service:8001"
+            - name: VEHICLE_SERVICE_URL
+              value: "http://vehicle-service:8002"
+            - name: LOCATION_SERVICE_URL
+              value: "http://location-service:8003"
+            - name: NOTIFICATION_SERVICE_URL
+              value: "http://notification-service:8004"
+

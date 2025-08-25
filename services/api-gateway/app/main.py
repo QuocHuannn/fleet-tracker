@@ -9,6 +9,7 @@ import time
 from .config import settings
 from .routes import health, proxy
 from .middleware import add_correlation_id
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # Configure logging
 logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
@@ -24,6 +25,9 @@ app = FastAPI(
         "email": "truonghuan0709@gmail.com"
     }
 )
+
+# Instrument the app for Prometheus
+Instrumentator().instrument(app).expose(app)
 
 # CORS Configuration
 app.add_middleware(

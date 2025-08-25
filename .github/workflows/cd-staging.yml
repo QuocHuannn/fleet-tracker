@@ -1,0 +1,45 @@
+name: CD - Deploy to Staging
+
+on:
+  workflow_run:
+    workflows: ["CI - Backend Services", "CI - Frontend Service"]
+    types:
+      - completed
+    branches:
+      - main
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Kubernetes context
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG_DATA_STAGING }}
+
+      - name: Install kustomize
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
+          sudo mv kustomize /usr/local/bin/
+
+      - name: Update Kubernetes image tags
+        run: |
+          cd k8s/staging
+          kustomize edit set image ghcr.io/your-github-username/fleet-tracker-api-gateway=ghcr.io/${{ github.repository_owner }}/fleet-tracker-api-gateway:${{ github.event.workflow_run.head_sha }}
+          kustomize edit set image ghcr.io/your-github-username/fleet-tracker-auth-service=ghcr.io/${{ github.repository_owner }}/fleet-tracker-auth-service:${{ github.event.workflow_run.head_sha }}
+          kustomize edit set image ghcr.io/your-github-username/fleet-tracker-location-service=ghcr.io/${{ github.repository_owner }}/fleet-tracker-location-service:${{ github.event.workflow_run.head_sha }}
+          kustomize edit set image ghcr.io/your-github-username/fleet-tracker-notification-service=ghcr.io/${{ github.repository_owner }}/fleet-tracker-notification-service:${{ github.event.workflow_run.head_sha }}
+          kustomize edit set image ghcr.io/your-github-username/fleet-tracker-vehicle-service=ghcr.io/${{ github.repository_owner }}/fleet-tracker-vehicle-service:${{ github.event.workflow_run.head_sha }}
+          kustomize edit set image ghcr.io/your-github-username/fleet-tracker-frontend=ghcr.io/${{ github.repository_owner }}/fleet-tracker-frontend:${{ github.event.workflow_run.head_sha }}
+
+      - name: Deploy to Staging
+        run: |
+          echo "Deploying to staging environment..."
+          kubectl apply -k k8s/staging
+
